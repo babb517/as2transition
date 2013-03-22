@@ -1,0 +1,52 @@
+#                                               -*- Autoconf -*-
+# Process this file with autoconf to produce a configure script.
+
+AC_PREREQ([2.68])
+AC_INIT(as2transition, 2.2, jbabb1@asu.edu)
+AC_CONFIG_SRCDIR([src/as2transition.cpp])
+AC_CONFIG_HEADERS([config.h])
+AC_CONFIG_AUX_DIR([build-scripts])
+
+
+# Setup Automake
+AM_INIT_AUTOMAKE
+AC_CONFIG_FILES([Makefile src/Makefile])
+
+
+# Allows LEX, YACC, and RE2C to rebuild their files.
+AM_MAINTAINER_MODE([disable])
+
+# Checks for programs.
+AC_PROG_CXX
+AC_PROG_CC
+AC_PROG_LN_S
+
+# Checks for libraries.
+
+# Checks for header files.
+AC_FUNC_ALLOCA
+AC_CHECK_HEADERS([unistd.h])
+
+# Checks for typedefs, structures, and compiler characteristics.
+AC_HEADER_STDBOOL
+AC_C_INLINE
+AC_TYPE_SIZE_T
+
+# Checks for library functions.
+AC_CHECK_FUNCS([realpath])
+
+# Allow Debugging
+AC_ARG_ENABLE(debug,
+AS_HELP_STRING([--enable-debug],
+               [enable debugging, default: no]),
+[case "${enableval}" in
+             yes) debug=true ;;
+             no)  debug=false ;;
+             *)   AC_MSG_ERROR([bad value ${enableval} for --enable-debug]) ;;
+esac],
+[debug=false])
+AM_CONDITIONAL(DEBUG, test x"$debug" = x"true")
+
+AC_OUTPUT
+#                                               -*- Autoconf -*-
+# Process this file with autoconf to produce a configure script.
