@@ -1,7 +1,9 @@
 #! /bin/bash
+SCRIPT_PATH="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+CALL_PATH="$PWD"
 
 # perform the bootstrap passing arguments to autoconf
-
+cd "$SCRIPT_PATH"
 if [ "$1" == "noconf" ]
 then
 
@@ -19,5 +21,5 @@ else
 		autoconf && \
 		./configure "$@"
 fi
-
+cd "$CALL_PATH"
 
