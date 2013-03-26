@@ -33,7 +33,7 @@ std::string Predicate::sNoneValue = "none";
 // Re-creates an appropriate string representation of the predicate and returns it.
 std::string Predicate::toPredicateString(Config::Format fmt)
 {
-	std::string stripped_name;
+	std::string stripped_name, stripped_value;
 
 	// Strip the 'saniConst_' from the constant.
 	if (name.find("saniConst_") == 0) {
@@ -41,6 +41,21 @@ std::string Predicate::toPredicateString(Config::Format fmt)
 	} else {
 		stripped_name = name;
 	}
+	
+	// Strip the 'saniObj_' from each of the objects in the name.
+	size_t pos; 
+	while ((pos = stripped_name.find("saniObj_")) != std::string::npos) {
+		stripped_name.replace(pos, 8, "");
+	}
+
+	// Strip the 'saniObj_' from the value.
+	if (value.find("saniObj_") == 0) {
+		stripped_value= value.substr(8);
+	} else {
+		stripped_value = value;
+	}
+
+
 	// Most of the special formatting only happens to special predicates, so check that first.
 	if(predType == T_UNKNOWN) {
 		return stripped_name;
@@ -54,13 +69,13 @@ std::string Predicate::toPredicateString(Config::Format fmt)
 		/* no break */
 	case Config::FMT_ATOMIC_FORMULA:
 		if (hasEql)
-			return stripped_name + "=" + value;
+			return stripped_name + "=" + stripped_value;
 		else return stripped_name;
 
 	case Config::FMT_STRIP_PREFIX:
 		switch (hasEql) {
-		case HASEQL_EQL:	return "eql(" + stripped_name + ", " + value + ")";
-		case HASEQL_EQ:		return "eq("  + stripped_name + ", " + value + ")";
+		case HASEQL_EQL:	return "eql(" + stripped_name + ", " + stripped_value + ")";
+		case HASEQL_EQ:		return "eq("  + stripped_name + ", " + stripped_value + ")";
 		case HASEQL_NONE:	return stripped_name;
 		}
 		
@@ -76,10 +91,10 @@ std::string Predicate::toPredicateString(Config::Format fmt)
 
 		switch (hasEql) {
 		case HASEQL_EQ:
-			ret << "eq("  << stripped_name << ", " << value << ")";
+			ret << "eq("  << stripped_name << ", " << stripped_value << ")";
 			break;
 		case HASEQL_EQL:
-			ret << "eql(" << stripped_name << ", " << value << ")";
+			ret << "eql(" << stripped_name << ", " << stripped_value << ")";
 			break;
 		case HASEQL_NONE: 
 			ret << stripped_name;
