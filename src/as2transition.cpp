@@ -348,6 +348,10 @@ int main(int argc, char** argv)
 			{	// They want to stop us from auto-transforming eq predicates into CCalc-style representation.
 				config.predFormat = Config::FMT_ORIGINAL;
 			}
+			else if (strcmp(argv[i], "-b") == 0 || strcmp(argv[i], "--bool") == 0)
+			{
+				config.predFormat = Config::FMT_ATOMIC_FORMULA;
+			}
 			else if(strcmp(argv[i], "-f") == 0)
 			{	// Input file being specified.  Verify they actually gave us a file argument (and they haven't already given this option).
 				if(i < argc-1 && strInFile == "") {
@@ -440,6 +444,8 @@ int main(int argc, char** argv)
 						  << "  -a  (or --all) causes " << strEXEName << " to display all positive" << endl
 						  << "      predicates returned by the solver (vs. just the CCalc-equivalent ones)." << endl
 						  << "  -A  (or --ALL) displays all predicates, positive and negative." << endl
+						  << "  -b  (or --bool) prevents the compression of boolean atomic formulas" << endl
+						  << "      c=true and c=false to c and -c." << endl
 						  << "  -e  (or --eq) stops " << strEXEName << " from transforming formatted" << endl
 						  << "      eq or eql predicates (e.g., <prefix>(eq(p(x),v),t)) into CCalc-style " << endl
 						  << "      representations (e.g., p(x)=v)." << endl
