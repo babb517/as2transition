@@ -27,19 +27,18 @@
 #include "Predicate.h"
 #include "Config.h"
 
-
-std::string Predicate::sNoneValue = "none";
+namespace as2transition {
 
 // Re-creates an appropriate string representation of the predicate and returns it.
-std::string Predicate::toPredicateString(Config::Format fmt)
+std::string Predicate::str(Format fmt) const
 {
 	std::string stripped_name, stripped_value;
 
 	// Strip the 'saniConst_' from the constant.
-	if (name.find("saniConst_") == 0) {
-		stripped_name = name.substr(10);
+	if (name().find("saniConst_") == 0) {
+		stripped_name = name().substr(10);
 	} else {
-		stripped_name = name;
+		stripped_name = name();
 	}
 	
 	// Strip the 'saniObj_' from each of the objects in the name.
@@ -49,47 +48,45 @@ std::string Predicate::toPredicateString(Config::Format fmt)
 	}
 
 	// Strip the 'saniObj_' from the value.
-	if (value.find("saniObj_") == 0) {
-		stripped_value= value.substr(8);
+	if (value().find("saniObj_") == 0) {
+		stripped_value= value().substr(8);
 	} else {
-		stripped_value = value;
+		stripped_value = value();
 	}
 
 
 	// Most of the special formatting only happens to special predicates, so check that first.
-	if(predType == T_UNKNOWN) {
+	if(type() == T_UNKNOWN) {
 		return stripped_name;
 	}
 
 	switch (fmt) {
-	case Config::FMT_AF_COMPRESSED_BOOL:
-		if (isBool())
+	case FMT_SHORT:
+		if (boolean())
 			return (isFalse() ? "-" : "") + stripped_name;
 
 		/* no break */
-	case Config::FMT_ATOMIC_FORMULA:
-		if (hasEql)
+	case FMT_EQL:
+		if (hasEql())
 			return stripped_name + "=" + stripped_value;
 		else return stripped_name;
 
-	case Config::FMT_STRIP_PREFIX:
-		switch (hasEql) {
+	case FMT_INNER:
+		switch (hasEql()) {
 		case HASEQL_EQL:	return "eql(" + stripped_name + ", " + stripped_value + ")";
 		case HASEQL_EQ:		return "eq("  + stripped_name + ", " + stripped_value + ")";
 		case HASEQL_NONE:	return stripped_name;
 		}
 		
 
-	case Config::FMT_ORIGINAL:
+	case FMT_RAW:
 	default:
 		std::stringstream ret;
 
-		ret << predTypeToPrefixString(predType);
+		ret << predTypeToPrefixString(type());
 
 
-
-
-		switch (hasEql) {
+		switch (hasEql()) {
 		case HASEQL_EQ:
 			ret << "eq("  << stripped_name << ", " << stripped_value << ")";
 			break;
@@ -101,10 +98,10 @@ std::string Predicate::toPredicateString(Config::Format fmt)
 			break;
 		}
 
-		if (predType != T_RIGID && predType != T_UNKNOWN) {
+		if (type() != T_RIGID && type() != T_UNKNOWN) {
 
-			if (predType != T_RIGID && timeStamp != RIGID_TIME) {
-				ret << ", " << timeStamp;
+			if (type() != T_RIGID && time() != TIMELESS) {
+				ret << ", " << time();
 			}
 
 			ret << ")";
@@ -124,12 +121,18 @@ Predicate::Type Predicate::getPrefixType(std::string const& text, size_t* outOff
 	if (trimStr.size() >= 2 && !strncmp(tempStr,"h(",2)) {
 		if (outOffset) *outOffset = 2;
 		return T_FLUENT;
+	} else if (trimStr.size() >= 2 && !strncmp(tempStr, "o(",2)) {
+		if (outOffset) *outOffset = 2;
+		return T_ACTION;
 	} else if (trimStr.size() >= 4 && !strncmp(tempStr,"occ(",4)) {
 		if (outOffset) *outOffset = 4;
 		return T_ACTION;
 	} else if (trimStr.size() >= 5 && !strncmp(tempStr,"ab_h(",5)) {
 		if (outOffset) *outOffset = 5;
 		return T_STATIC_AB;
+	} else if (trimStr.size() >= 5 && !strncmp(tempStr,"ab_o(",7)) {
+		if (outOffset) *outOffset = 5;
+		return T_DYNAMIC_AB;
 	} else if (trimStr.size() >= 7 && !strncmp(tempStr,"ab_occ(",7)) {
 		if (outOffset) *outOffset = 7;
 		return T_DYNAMIC_AB;
@@ -144,7 +147,7 @@ Predicate::Type Predicate::getPrefixType(std::string const& text, size_t* outOff
 	}
 }
 
-void Predicate::getPredInfo(std::string const& text, Type& outType, EqlVal& outHasEql, std::string& outName, bool& outXPred, std::string& outVal, int& outTime)
+void Predicate::getPredInfo(std::string const& text, Type& outType, EqlVal& outHasEql, std::string& outName, bool& outXPred, std::string& outVal, size_t& outTime)
 {
 	// Intermediate results
 	std::string tmpName;
@@ -168,7 +171,7 @@ void Predicate::getPredInfo(std::string const& text, Type& outType, EqlVal& outH
 		outHasEql = HASEQL_NONE;
 		outName = trimStr;
 		outVal = "";
-		outTime = RIGID_TIME;
+		outTime = TIMELESS;
 		return;
 	}
 
@@ -204,7 +207,7 @@ void Predicate::getPredInfo(std::string const& text, Type& outType, EqlVal& outH
 
 
 	// get the base name.
-	offset = (int)(StringUtils::scanAndMatchParens(tempStr + curpos, ',', size - curpos) - (tempStr + curpos));
+	offset = (size_t)(StringUtils::scanAndMatchParens(tempStr + curpos, ',', size - curpos) - (tempStr + curpos));
 
 	// check to make sure we found it!
 	if (offset < 1) {
@@ -212,7 +215,7 @@ void Predicate::getPredInfo(std::string const& text, Type& outType, EqlVal& outH
 		outHasEql = HASEQL_NONE;
 		outName = trimStr;
 		outVal = "";
-		outTime = RIGID_TIME;
+		outTime = TIMELESS;
 		return;
 	}
 
@@ -225,7 +228,7 @@ void Predicate::getPredInfo(std::string const& text, Type& outType, EqlVal& outH
 	if (outHasEql) {
 		// if the predicate has an eql() wrapper, then we want to get the value it's equal to.
 
-		offset = (int)(StringUtils::scanAndMatchParens(tempStr + curpos, ')', size - curpos) - (tempStr + curpos));
+		offset = (size_t)(StringUtils::scanAndMatchParens(tempStr + curpos, ')', size - curpos) - (tempStr + curpos));
 
 		// make sure we found something...
 		if (offset < 1) {
@@ -233,7 +236,7 @@ void Predicate::getPredInfo(std::string const& text, Type& outType, EqlVal& outH
 			outHasEql = HASEQL_NONE;
 			outName = trimStr;
 			outVal = "";
-			outTime = RIGID_TIME;
+			outTime = TIMELESS;
 			return;
 		}
 		outVal = StringUtils::trimWhitespace(trimStr.substr(curpos, offset));
@@ -250,36 +253,36 @@ void Predicate::getPredInfo(std::string const& text, Type& outType, EqlVal& outH
 	if (*(tempStr + curpos) == ',') curpos++;
 
 	if (outType == T_RIGID) {
-		outTime = RIGID_TIME;
+		outTime = TIMELESS;
 	} else {
 		// last but not least, find ourselves the time
-		offset = (int)(StringUtils::scanAndMatchParens(tempStr + curpos, ')', size - curpos) - (tempStr + curpos));
+		offset = (size_t)(StringUtils::scanAndMatchParens(tempStr + curpos, ')', size - curpos) - (tempStr + curpos));
 
 		// make sure we found something...
 
 
 		if (offset == 0 && outType == T_FLUENT) {
 			// special case: we're looking at a rigid predicate.
-			outTime = RIGID_TIME;
+			outTime = TIMELESS;
 
 		} else if (offset < 1) {
 			outType = T_UNKNOWN;
 			outHasEql = HASEQL_NONE;
 			outName = trimStr;
 			outVal = "";
-			outTime = RIGID_TIME;
+			outTime = TIMELESS;
 			return;
-		} else if (!StringUtils::from_string<int>(outTime, StringUtils::trimWhitespace(trimStr.substr(curpos, offset)))) {
+		} else if (!StringUtils::from_string<size_t>(outTime, StringUtils::trimWhitespace(trimStr.substr(curpos, offset)))) {
 			// can't convert to an integer time.
-			outTime = RIGID_TIME;
+			outTime = TIMELESS;
 		}
 	}
 
 	return;
 }
 
-std::string Predicate::predTypeToPrefixString(Type predType) {
-	switch (predType) {
+std::string Predicate::predTypeToPrefixString(Type type) {
+	switch (type) {
 	case T_FLUENT:
 		return "h(";
 	case T_ACTION:
@@ -295,3 +298,8 @@ std::string Predicate::predTypeToPrefixString(Type predType) {
 		return "";
 	}
 }
+
+}; /* end namsepace as2transition */
+
+
+

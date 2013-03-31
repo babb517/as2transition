@@ -20,12 +20,12 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-
-#ifndef STRINGUTILS_DOT_H
-#define STRINGUTILS_DOT_H
+#pragma once
 
 #include <sstream>
 #include <string>
+
+namespace as2transition {
 
 /**
  * A class of static string utilities that help with processing raw text into various forms.
@@ -107,6 +107,5 @@ namespace StringUtils
 	 */
 	char const* scanAndMatchParens(char const* str, char delim, size_t strSize);
 
-};
+};};
 
-#endif // STRINGUTILS_DOT_H

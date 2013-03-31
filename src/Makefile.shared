@@ -1,0 +1,30 @@
+SUFFIXES = 
+
+# Debugging Flags
+if DEBUG
+AM_CFLAGS = -g3 -O0 -DDEBUG
+AM_CXXFLAGS = -g3 -O0 -DDEBUG --std=c++0x
+else
+AM_CFLAGS = -O3 -DNDEBUG
+AM_CXXFLAGS = -O3 -DNDEBUG --std=c++0x
+endif
+
+# RE2C rules
+SUFFIXES += .re2c
+if MAINTAINER_MODE
+if HAVE_RE2C
+.re2c.cpp:
+	$(RE2C) -o $@ $^
+else
+.re2c.cpp:
+	@- echo "ERROR: Configured to build in maintainer mode but re2c is not installed on the computer." 
+	@- echo "ERROR: Modified re2c files cannot be compiled into the corresponding .cpp file."
+	@- echo "ERROR: Please install re2c before continuing."
+	@- exit 1
+endif
+else
+.re2c.cpp:
+	@- echo "WARNING: The system must be configured to build in maintainer mode in order to rebuild re2c files."
+	@- echo "WARNING: These files will not be rebuilt unless you rerun the configure script with the '--enable-maintainer-mode' flag."
+endif
+

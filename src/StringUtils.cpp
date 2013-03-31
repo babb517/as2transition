@@ -23,6 +23,8 @@
 
 #include "StringUtils.h"
 
+namespace as2transition {
+
 namespace StringUtils {
 
 	char const* scanAndMatchParens(char const* str, char delim, size_t strSize) {
@@ -64,5 +66,5 @@ namespace StringUtils {
 		return retVal;
 	}
 
-}
+};};
 

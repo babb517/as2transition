@@ -20,17 +20,28 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#pragma once
 
-/**
- * Config.h
- *
- *  Created on: Jan 14, 2013
- *      Author: Joseph Babb
- */
+namespace as2transition {
 
 
-#ifndef CONFIG_H_
-#define CONFIG_H_
+/// An enumeration of the compatible solver types.
+enum Solver {
+	SLVR_CMODELS, 
+	SLVR_SMODELS, 
+	SLVR_OCLINGO, 
+	SLVR_UNKNOWN
+};
+
+/// An enum for output formatting options
+enum Format {
+	FMT_RAW,					/// <prefix>(eq(<name>,<value>),<timestamp>)
+	FMT_INNER,		 			/// eq(<name>,<value>)
+	FMT_EQL,			 		/// <name>=<value>
+	FMT_SHORT			 		/// Same as ATOMIC_FORMULA, except boolean values are represented as <name> and -<name>
+};
+
+/// An enumeration of various user exposed options
 
 /**
  * @file Config.h
@@ -39,13 +50,6 @@
  */
 class Config {
 public:
-	/// An enum for output formatting options
-	enum Format {
-		FMT_ORIGINAL,				/// <prefix>(eq(<name>,<value>),<timestamp>)
-		FMT_STRIP_PREFIX, 			/// eq(<name>,<value>)
-		FMT_ATOMIC_FORMULA, 		/// <name>=<value>
-		FMT_AF_COMPRESSED_BOOL 		/// Same as ATOMIC_FORMULA, except boolean values are represented as <name> and -<name>
-	};
 
 	bool onePredPerLine; 			///< If true, each predicate will appear on its own line.
 
@@ -57,7 +61,11 @@ public:
 	bool showXPredicates; 			///< If true, we'll display formatted predicates whose inner predicate starts with "x_" (e.g., "<prefix>(x_contrib(...),0)").
 	bool showUnformattedPredicates;	///< If true, we'll display predicates which aren't formatted in the expected manner.
 
-	Format predFormat;
+	Format predFormat;				///< The format to put the predicates in.
+
+	Solver solver;					///< The solver that we're working with.
+
+	std::string noneAlias;			///< The alias for 'none', if any.
 
 	/// Basic Constructor
 	inline Config()
@@ -68,11 +76,12 @@ public:
 		  showNegPredicates(false),
 		  showXPredicates(false),
 		  showUnformattedPredicates(true),
-		  predFormat(FMT_AF_COMPRESSED_BOOL)
+		  predFormat(FMT_SHORT),
+		  solver(SLVR_UNKNOWN),
+		  noneAlias("")
 		{ /* Intentionally Left Blank */ }
 
 };
 
+};
 
-
-#endif /* CONFIG_H_ */

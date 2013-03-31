@@ -20,15 +20,16 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#pragma once
 
-#ifndef PREDICATE_DOT_H
-#define PREDICATE_DOT_H
 
-#include <climits> // For INT_MIN
+#include <limits>
 #include <string>
 
 #include "Config.h"
 #include "StringUtils.h"
+
+namespace as2transition {
 
 /**
  * The Predicate class represents an atom of a solution at a given time step.
@@ -43,7 +44,7 @@ class Predicate
 	enum Type { T_FLUENT, T_RIGID, T_ACTION, T_CONTRIB, T_STATIC_AB, T_DYNAMIC_AB, T_EQL, T_UNKNOWN };
 
 	/// Special values for special time steps
-	static int const RIGID_TIME = INT_MIN;
+	static size_t const TIMELESS = std::numeric_limits<size_t>::max() - 1;
 
 
 	/// Enum of the various types of equality that can be contained in the predicate
@@ -58,7 +59,7 @@ class Predicate
 	 * @param name - The full name of the predicate.
 	 */
 	Predicate(std::string const& name)
-		: name(name), timeStamp(RIGID_TIME), predType(T_UNKNOWN), hasEql(HASEQL_NONE), xpred(NULL), value("")
+		: mName(name), mTimeStamp(TIMELESS), mPredType(T_UNKNOWN), mHasEql(HASEQL_NONE), mXpred(NULL), mValue("")
 			{ /* Intentionally Left Blank */ }
 	
 	/**
@@ -69,8 +70,8 @@ class Predicate
 	 * @param xpred - Whether the predicate's name is x_<name>, which marks it as an internal predicate.
 	 * @param value - The (optional) value the predicate has taken. The empty string if the predicate doesn't have an eql() or eq() wrapper.
 	 */
-	inline Predicate(Type predType, std::string const& name, int timeStamp, bool xpred, std::string const& value = "")
-		: name(name), timeStamp(timeStamp), predType(predType), hasEql((value != "") ? HASEQL_EQL : HASEQL_NONE), xpred(xpred), value(value)
+	inline Predicate(Type predType, std::string const& name, size_t timeStamp, bool xpred, std::string const& value = "")
+		: mName(name), mTimeStamp(timeStamp), mPredType(predType), mHasEql((value != "") ? HASEQL_EQL : HASEQL_NONE), mXpred(xpred), mValue(value)
 		{ /* Intentionally Left Blank */ }
 	
 	/**
@@ -82,52 +83,56 @@ class Predicate
 	 * Accessor for name.
 	 * @return The string name.
 	 */
-	inline std::string const& getName() const { return name; };
+	inline std::string const& name() const { return mName; };
 	
 	/**
 	 * Accessor for timeStamp.
 	 * @return The current value of timeStamp.
 	 */
-	inline int getTimeStamp() const { return timeStamp; }
+	inline size_t time() const { return mTimeStamp; }
 
 	/**
 	 * Accessor for predType.
 	 * @return The current value of predType.
 	 */
-	inline Type getType() const { return predType; }
+	inline Type type() const { return mPredType; }
 
 	/**
 	 * Accessor for value.
 	 * @return The current value of value.
 	 */
-	inline std::string const& getValue() const { return value; }
+	inline std::string const& value() const { return mValue; }
 
 	/**
 	 * Accessor for xpred.
 	 * @return The current value of xpred.
 	 */
-	inline bool isXPred() { return xpred; }
+	inline bool xpred() const { return mXpred; }
 
 	/**
 	 * Determines if the predicate appears to be boolean.
 	 * @return True if the predicate value "true" or "false".
 	 */
-	inline bool isBool() { return isTrue() || isFalse(); }
+	inline bool boolean() const { return isTrue() || isFalse(); }
 
 	/**
 	 * Determines if the predicate value is the reserved 'none' or 'false' keywords.
+	 * Resolves possibly 'none' aliases using the provided configuration.
+	 * @param config The configuration used to resolve the alias.
 	 * @return True if the value is 'none' or 'false'.
 	 */
-	inline bool isNegative() { return isNone() || isFalse(); }
+	inline bool negative(Config const* config = NULL) const { return isNone(config) || isFalse(); }
 
 	/// Determines if the predicate's value is 'none'.
-	inline bool isNone() { return value == sNoneValue; }
-
+	/// Resolves possibly 'none' aliases using the provided configuration.
+	/// @param config The configuration used to resolve the alias.
+	inline bool isNone(Config const* config = NULL) const { return value() == "none" || (config && value() == config->noneAlias); }
+	
 	/// Determines if the predicate's value is 'true'.
-	inline bool isTrue() { return value == "true"; }
+	inline bool isTrue() const { return value() == "true"; }
 
 	/// DeterminEs if the predicate's value is 'false'.
-	inline bool isFalse() { return value == "false"; }
+	inline bool isFalse() const { return value() == "false"; }
 
 
 
@@ -135,14 +140,14 @@ class Predicate
 	 * Accessor for hasEql.
 	 * @return The current value of hasEql.
 	 */
-	inline EqlVal getHasEql() const { return hasEql; }
+	inline EqlVal hasEql() const { return mHasEql; }
 	
 	/**
 	 * Re-creates an appropriate string representation of the predicate and returns it.
 	 * @param fmt - The formatting style to use.
 	 * @return The appropriate string representation of the predicate.
 	 */
-	std::string toPredicateString(Config::Format fmt);
+	std::string str(Format fmt) const;
 	
 	/**
 	 * Evaluates text to determine if it has a special prefix, such as "h(", "occ(", or "ab(" and returns that information.
@@ -162,9 +167,9 @@ class Predicate
 	 * @param outName - The name of the predicate (text in the event we were unable to identify the predicate or the predicate is malformed).
 	 * @param outXPred - Whether the predicate's name is of the form 'x_<pred>', which marks it as an internal predicate.
 	 * @param outVal - The value the predicate has taken ("" if the predicate does not have an eql or eq function wrapper).
-	 * @param outTime - The timestamp for the predicate. Set to RIGID_TIME if the predicate appears to be rigid.
+	 * @param outTime - The timestamp for the predicate. Set to TIMELESS if the predicate appears to be rigid.
 	 */
-	static void getPredInfo(std::string const& text, Type& outType, EqlVal& outHasEql, std::string& outName, bool& outXPred, std::string& outVal, int& outTime);
+	static void getPredInfo(std::string const& text, Type& outType, EqlVal& outHasEql, std::string& outName, bool& outXPred, std::string& outVal, size_t& outTime);
 
 	/**
 	 * Creates a predicate instance from a string containing the predicate.
@@ -174,7 +179,7 @@ class Predicate
 	inline static Predicate* makePredicate(std::string const& text) {
 		Predicate* ret = new Predicate("");
 		// populate!
-		getPredInfo(text, ret->predType, ret->hasEql, ret->name, ret->xpred, ret->value, ret->timeStamp);
+		getPredInfo(text, ret->mPredType, ret->mHasEql, ret->mName, ret->mXpred, ret->mValue, ret->mTimeStamp);
 		return ret;
 	}
 
@@ -185,26 +190,17 @@ class Predicate
 	 */
 	static std::string predTypeToPrefixString(Type predType);
 
-	/**
-	 * Sets the value that should be treated as 'none'.
-	 * @param noneAlias the new alias for 'none'.
-	 */
-	inline static void setNoneAlias(std::string const& noneAlias)	{ sNoneValue = noneAlias; }
-
-	/// Gets the value that's being treated as 'none'
-	inline static std::string const& getNoneAlias()			{ return sNoneValue; }
-
 
   protected:
-	std::string name; 		///< The full contents of the predicate (just the inner predicate if it was a specially formatted predicate).
-	int timeStamp; 			///< The time stamp the predicate occurs in (if applicable). Possibly RIGID_TIME (if the predicate is rigid).
-	Type predType;			///< The type of predicate that this instance represents.
-	EqlVal hasEql;			///< True if the predicate has an eql(<name>,<value>) or eq(<name>,<value>) function wrapper, false otherwise.
-	bool xpred;				///< True if the predicate's name has the form 'x_<name>', which marks it as an internal predicate.
-	std::string value;		///< The value the predicate has taken, or "" if there is no function wrapper.
+	std::string mName; 		///< The full contents of the predicate (just the inner predicate if it was a specially formatted predicate).
+	size_t mTimeStamp; 			///< The time stamp the predicate occurs in (if applicable). Possibly TIMELESS (if the predicate is rigid).
+	Type mPredType;			///< The type of predicate that this instance represents.
+	EqlVal mHasEql;			///< True if the predicate has an eql(<name>,<value>) or eq(<name>,<value>) function wrapper, false otherwise.
+	bool mXpred;				///< True if the predicate's name has the form 'x_<name>', which marks it as an internal predicate.
+	std::string mValue;		///< The value the predicate has taken, or "" if there is no function wrapper.
 	
-
-	static std::string sNoneValue;	///< The (possibly aliased) value that corresponds to a value of 'none'.
 };
 
-#endif // PREDICATE_DOT_H
+}; /* End namespace as2transition */
+
+

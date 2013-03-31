@@ -1,0 +1,340 @@
+/* 
+ * Copyright (c) 2010-2013 <Joseph Babb, Michael Cassollary, Joohyung Lee>
+ *
+ * For information on how to contact the authors, please visit
+ *	http://reasoning.eas.asu.edu/cplus2asp
+ *
+ * This file is part of the cplus2asp system.
+ *
+ * cplus2asp is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * cplus2asp is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
+#include <string>
+#include <iostream>
+#include <cstring>
+#include <algorithm>
+#include <cctype>
+
+#include "TransitionFormatter.h"
+#include "TransitionPath.h"
+#include "Predicate.h"
+
+namespace as2transition {
+
+/**
+ * Checks if the provided string consists of just integers.
+ * @param str The string to check.
+ * @return True if str contains only [0-9].
+ */
+bool isIntegerString(std::string const& str) {
+	char const* c_str = str.c_str();
+
+	size_t sz = str.size();
+	for (size_t i = 0; i < sz; i++) {
+		if (!isdigit(c_str[i])) return false;
+	} 
+	return true;
+}
+
+void TransitionFormatter::help(std::ostream& out, bool shorthand) {
+	out
+		<< "  --format=FORMAT" << " OR --FORMAT " << ((shorthand) ? " OR -r / -i / -e / -s" : "")	<< std::endl 
+		<< "         Specifies a format to use for each of the constants being output. FORMAT can "	<< std::endl
+		<< "         be any of the following: "														<< std::endl
+		<< "              raw   - Displays all constants as they appear from the solver."			<< std::endl
+		<< "              inner - Strips and displays the inner <pre> from h(<pred>,<t>) style "	<< std::endl
+		<< "                      (or similar), atoms."												<< std::endl
+		<< "              eql   - Similar to 'inner' but also formats all inner eql(<c>,<v>) "		<< std::endl
+		<< "                      (or eq(<c>,<v>)) as <c>=<v>."										<< std::endl
+		<< "              short - Similar to 'eql' but also compresses boolean <c>=true and"		<< std::endl
+		<< "                      <c>=false to c and -c, respectively. (Default Value.)"			<< std::endl
+		  																							<< std::endl
+		<< "  --all" << ((shorthand) ? " OR -a" : "")												<< std::endl
+		<< "         Displays all positive predicates."												<< std::endl 
+		<< "  --ALL" << ((shorthand) ? " OR -A" : "")												<< std::endl
+		<< "         Displays all predicates, positive and negative." 								<< std::endl
+		<< "  --negated[=true|false]" << ((shorthand) ? " OR -n" : "")								<< std::endl
+		<< "         Sets whether to show negative constants which the value of 'none' or 'false'"	<< std::endl
+		<< "  --contribs[=true|false]" << ((shorthand) ? " OR -c" : "")								<< std::endl
+		<< "         Sets whether to show formatted \"contribution\" and \"x_contrib\" constants"	<< std::endl
+		<< "         which are used as intermediates for C+ additive constants."					<< std::endl
+		<< "  --xpreds[=true|false]" << ((shorthand) ? " OR -x" : "")								<< std::endl
+		<< "         Sets whether to show constants who's (inner) names begin with \"x_\" which"	<< std::endl
+		<< "         are used as temporary constants in CPlus2ASP."									<< std::endl
+																									<< std::endl 
+		<< "  --separate-actions[=true|false]" 														<< std::endl
+		<< "         Sets whether to show action constants in a separate section."					<< std::endl
+		<< "  --separate-abs[=true|false]"															<< std::endl
+		<< "         Sets whether to show abnormality constants in a separate section."				<< std::endl
+																									<< std::endl
+		<< "  --line" << ((shorthand) ? " OR -l" : "")												<< std::endl
+		<< "         Prints out each predicate on a separate line." 								<< std::endl
+		<< "  --none=VALUE" << ((shorthand) ? " OR -n=VALUE" : "")									<< std::endl
+		<< "          Sets [VALUE] to be treated as an alias for 'none'. Useful if 'none' has been"	<< std::endl
+		<< "          replaced with an integer to circumvent a bug in Gringo 3.X.X's unification"	<< std::endl
+		<< "          checking that sometimes prevents grounding." 									<< std::endl;
+}
+
+bool TransitionFormatter::parseOption(char const* opt, bool shorthand) {
+	char const* marker = opt;
+	char const* cursor = opt;
+
+	/*!re2c
+        re2c:define:YYCTYPE = "char";
+        re2c:define:YYCURSOR = cursor;
+        re2c:yyfill:enable = 0;
+        re2c:define:YYMARKER = marker;
+        re2c:indent:top = 1;
+
+		"--format="[a-z]+							{ return setOption(OPT_FMT,opt+strlen("--format="));					}
+		"--raw"										{ return setOption(OPT_FMT,"raw");										}
+		"--inner"									{ return setOption(OPT_FMT,"inner");									}
+		"--eql"										{ return setOption(OPT_FMT,"eql"); 										}
+		"--short"									{ return setOption(OPT_FMT,"short");									}
+
+		"--all"										{ return setOption(OPT_SHOW_ALMOST_ALL); 								}
+		"--ALL"										{ return setOption(OPT_SHOW_ALL); 										}
+
+		"--negated"									{ return setOption(OPT_SHOW_NEGATED, "true");							}
+		"--negated="[a-z]+							{ return setOption(OPT_SHOW_NEGATED, opt+strlen("--negated=")); 		}
+		"--contribs"								{ return setOption(OPT_SHOW_CONTRIBS, "true");					 		}
+		"--contribs="[a-z]+							{ return setOption(OPT_SHOW_CONTRIBS, opt+strlen("--contribs=")); 		}
+		"--xpreds"									{ return setOption(OPT_SHOW_XPREDS, "true"); 		return true; 		}
+		"--xpreds="[a-z]+							{ return setOption(OPT_SHOW_XPREDS, opt+strlen("--xpreds="));	 		}
+
+		"--separate-actions"						{ return setOption(OPT_SEP_ACTIONS, "true");							}
+		"--separate-actions="[a-z]+					{ return setOption(OPT_SEP_ACTIONS, opt+strlen("--separate-actions="));	}
+
+		"--separate-abs"							{ return setOption(OPT_SEP_ABS, "true");								}
+		"--separate-abs="[a-z]+						{ return setOption(OPT_SEP_ABS, opt+strlen("--separate-abs="));		 	}
+
+		"--line"									{ return setOption(OPT_LINES);											}
+		"--none="[^\000]+							{ return setOption(OPT_NONE_ALIAS,opt+strlen("--none="));				}
+
+		.											{ goto no_long_match; 													}
+	*/
+no_long_match:
+	if (!shorthand) return false;
+	cursor = opt;
+	marker = opt;
+
+	/*!re2c
+
+		"-r"										{ return setOption(OPT_FMT,"raw"); 				}
+		"-i"										{ return setOption(OPT_FMT,"inner");			}
+		"-e"										{ return setOption(OPT_FMT,"eql"); 				}
+		"-s"										{ return setOption(OPT_FMT,"short");	 		}
+
+		"-a"										{ return setOption(OPT_SHOW_ALMOST_ALL); 		}
+		"-A"										{ return setOption(OPT_SHOW_ALL); 				}
+
+		"-n"										{ return setOption(OPT_SHOW_NEGATED,"true"); 	}
+		"-c"										{ return setOption(OPT_SHOW_CONTRIBS,"true");	}
+		"-x"										{ return setOption(OPT_SHOW_XPREDS,"true"); 	}
+
+		"-l"										{ return setOption(OPT_LINES);					}
+
+		.											{ return false; }
+	*/
+
+}
+
+// Sets the specified option
+bool TransitionFormatter::setOption(Option opt, char const* val) {
+
+	switch (opt) {
+	case OPT_FMT:
+		if (!val)						return false;
+		if (!strcmp(val,"raw")) 		config().predFormat = Format::FMT_RAW;
+		else if (!strcmp(val, "inner"))	config().predFormat = Format::FMT_INNER;
+		else if (!strcmp(val, "eql")) 	config().predFormat = Format::FMT_EQL;
+		else if (!strcmp(val, "short"))	config().predFormat = Format::FMT_SHORT;
+		else 							return false;
+		return true;
+
+	case OPT_SHOW_ALL:
+		config().showNegPredicates = true;
+		/* no break */
+
+	case OPT_SHOW_ALMOST_ALL:
+		config().showContribPredicates = true;
+		config().showXPredicates = true;
+		return true;
+
+	case OPT_SHOW_NEGATED:
+		if (!val)						return false;
+		if (!strcmp(val,"true"))		config().showNegPredicates = true;
+		else if (!strcmp(val,"false"))	config().showNegPredicates = false;
+		else 							return false;
+		return true;
+
+	case OPT_SHOW_CONTRIBS:
+		if (!val)						return false;
+		if (!strcmp(val,"true"))		config().showContribPredicates = true;
+		else if (!strcmp(val,"false"))	config().showContribPredicates = false;
+		else 							return false;
+		return true;
+
+	case OPT_SHOW_XPREDS:
+		if (!val)						return false;
+		if (!strcmp(val,"true"))		config().showXPredicates = true;
+		else if (!strcmp(val,"false"))	config().showXPredicates = false;
+		else 							return false;
+		return true;
+
+	case OPT_SEP_ACTIONS:
+		if (!val)						return false;
+		if (!strcmp(val,"true"))		config().separateActions = true;
+		else if (!strcmp(val,"false"))	config().separateActions = false;
+		else 							return false;
+		return true;
+
+	case OPT_SEP_ABS:
+		if (!val)						return false;
+		if (!strcmp(val,"true"))		config().separateAbnormalities = true;
+		else if (!strcmp(val,"false"))	config().separateAbnormalities = false;
+		else 							return false;
+		return true;
+
+	case OPT_LINES:
+		config().onePredPerLine = true;
+		return true;
+
+	case OPT_NONE_ALIAS:
+		config().noneAlias = val;
+		return true;
+
+	default:
+		return false;
+	}
+}
+
+
+
+/**
+ * Reads in and processes the answer set line(s) that are next in the provided stream.
+ * @param in The in stream to read from.
+ * @param output The output stream to write to.
+ * @param solutionNum The current solution # we're working with.
+ * @param config The system configuration.
+ * @param nextToken The next token to be read.
+ */
+TransitionPath* TransitionFormatter::format(std::istream& in, bool ignorenl) const {
+	TransitionPath* path = new TransitionPath(config());
+	std::string token, tmp;
+	
+	size_t num_dquote;
+	size_t num_squote;
+	size_t num_lparen;
+	size_t num_rparen;
+	
+	Predicate* predTemp;
+
+	Solver solver = config().solver;
+
+	// read next candidate token
+	bool newline;
+	newline = readTokenOrNewline(in, token);
+
+	// Skip any answer set header...
+	if (token == "Stable") {
+		// smodels
+		newline = readTokenOrNewline(in, token); // 'Models:'
+		if (!newline) newline = readTokenOrNewline(in, token);
+		if (solver == SLVR_UNKNOWN) solver = SLVR_SMODELS;
+	} else if (token == "Answer") {
+		// cmodels
+		newline = readTokenOrNewline(in, token); // 'set:'
+		if (!newline) newline = readTokenOrNewline(in, token);
+		if (solver == SLVR_UNKNOWN) solver = SLVR_CMODELS;
+	} else if (token[token.size()-1] == '.' && isIntegerString(token.substr(0,token.size()-1))) {
+		// oclingo
+		if(solver == SLVR_UNKNOWN) solver = SLVR_OCLINGO;
+	}
+
+
+	// Read until we reach the next line.
+
+	while (in.good() && (ignorenl || !newline)
+			&& (solver != SLVR_OCLINGO || (token != "Step:" && token != "End")) /* oClingo online mode compatibility */) {
+
+			while (newline && in.good()) 
+				newline = readTokenOrNewline(in, token);
+
+			// Figure out the next atom, ensuring that we have balanced ", ', (, ).
+			// Assuming that the only time we have white space within the atom is
+			// in a string literal we can just keep grabbing chunks until we have
+			// something that appears to be balanced.
+			// TODO: This assume no escape characters.
+			num_dquote = std::count(token.begin(), token.end(), '"');
+			num_squote = std::count(token.begin(), token.end(), '\'');
+			num_lparen = std::count(token.begin(), token.end(), '(');
+			num_rparen = std::count(token.begin(), token.end(), ')');
+
+			while ((num_dquote % 2 
+				|| num_squote % 2
+				|| num_lparen != num_rparen) && in.good()) {
+
+				// get the next token.
+				newline = readTokenOrNewline(in, tmp, true);
+				token += tmp;
+
+				num_dquote += std::count(tmp.begin(), tmp.end(), '"');
+				num_squote += std::count(tmp.begin(), tmp.end(), '\'');
+				num_lparen += std::count(tmp.begin(), tmp.end(), '(');
+				num_rparen += std::count(tmp.begin(), tmp.end(), ')');
+			}
+
+
+			if (!in.good()) break;
+			// At this point we have what appears to be a complete atom. Process it.
+
+			// extract the predicate
+			predTemp = Predicate::makePredicate(token);
+			
+			// Add the predicate to the appropriate step
+			path->add(predTemp);
+
+			// next token
+			newline = readTokenOrNewline(in, token);
+	}
+
+	return path;
+}
+
+
+
+// Reads characters from the in stream until either a complete token or a newline character has been read.
+bool TransitionFormatter::readTokenOrNewline(std::istream& in, std::string& out, bool ws) {
+	char c;
+
+	out = "";
+	while (in.good() && isspace(in.peek())) {
+		c = in.get();
+		if (c == '\n') {
+			out += c;
+			return true;
+		} else if (ws) {
+			out += c;
+		}
+	}
+
+	while (in.good() && !isspace(in.peek())) {
+		out += in.get();
+	}
+
+
+	return false;
+}
+};

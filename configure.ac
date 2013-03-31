@@ -3,7 +3,7 @@
 
 AC_PREREQ([2.68])
 AC_INIT(as2transition, 2.2, jbabb1@asu.edu)
-AC_CONFIG_SRCDIR([src/as2transition.cpp])
+AC_CONFIG_SRCDIR([src/main.cpp])
 AC_CONFIG_HEADERS([config.h])
 AC_CONFIG_AUX_DIR([build-scripts])
 
@@ -20,6 +20,11 @@ AM_MAINTAINER_MODE([disable])
 AC_PROG_CXX
 AC_PROG_CC
 AC_PROG_LN_S
+AC_PATH_PROG([RE2C],[re2c],[false])
+AC_SUBST(RE2C)
+AM_CONDITIONAL([HAVE_RE2C],[test "x$RE2C" != x"false"])
+
+
 
 # Checks for libraries.
 

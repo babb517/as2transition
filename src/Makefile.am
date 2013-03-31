@@ -1,20 +1,15 @@
-# Debugging Flags
-if DEBUG
-AM_CFLAGS = -g3 -O0 -DDEBUG
-AM_CXXFLAGS = -g3 -O0 -DDEBUG
-else
-AM_CFLAGS = -O3
-AM_CXXFLAGS = -O3
-endif
+include Makefile.shared
 
 
 bin_PROGRAMS = as2transition
+
+BUILT_SOURCES = \
+	TransitionFormatter.cpp
+
 as2transition_SOURCES = \
-	as2transition.cpp \
-	Config.h \
-	Predicate.h \
+	main.cpp \
+	TransitionFormatter.re2c \
+	TransitionPath.cpp \
+	Timestep.cpp \
 	Predicate.cpp \
-	StringUtils.h \
-	StringUtils.cpp \
-	TimeStepInfo.h \
-	TimeStepInfo.cpp
+	StringUtils.cpp 
