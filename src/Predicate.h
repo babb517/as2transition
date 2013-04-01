@@ -119,14 +119,15 @@ class Predicate
 	 * Determines if the predicate value is the reserved 'none' or 'false' keywords.
 	 * Resolves possibly 'none' aliases using the provided configuration.
 	 * @param config The configuration used to resolve the alias.
+	 * @param noneAlias A value to replace w/ 'none' during printing (or NULL).
 	 * @return True if the value is 'none' or 'false'.
 	 */
-	inline bool negative(Config const* config = NULL) const { return isNone(config) || isFalse(); }
+	inline bool negative(std::string const* noneAlias = NULL) const { return isNone(noneAlias) || isFalse(); }
 
 	/// Determines if the predicate's value is 'none'.
-	/// Resolves possibly 'none' aliases using the provided configuration.
+	/// @param noneAlias A value to replace w/ 'none' during printing (or NULL).
 	/// @param config The configuration used to resolve the alias.
-	inline bool isNone(Config const* config = NULL) const { return value() == "none" || (config && value() == config->noneAlias); }
+	inline bool isNone(std::string const* noneAlias = NULL) const { return value() == "none" || (noneAlias && value() == *noneAlias); }
 	
 	/// Determines if the predicate's value is 'true'.
 	inline bool isTrue() const { return value() == "true"; }
@@ -144,10 +145,11 @@ class Predicate
 	
 	/**
 	 * Re-creates an appropriate string representation of the predicate and returns it.
-	 * @param fmt - The formatting style to use.
+	 * @param fmt The format used to print the predicate.
+	 * @param noneAlias A value to replace w/ 'none' during printing (or NULL).
 	 * @return The appropriate string representation of the predicate.
 	 */
-	std::string str(Format fmt) const;
+	std::string str(Format fmt, std::string const* noneAlias = NULL) const;
 	
 	/**
 	 * Evaluates text to determine if it has a special prefix, such as "h(", "occ(", or "ab(" and returns that information.

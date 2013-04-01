@@ -30,7 +30,7 @@
 namespace as2transition {
 
 // Re-creates an appropriate string representation of the predicate and returns it.
-std::string Predicate::str(Format fmt) const
+std::string Predicate::str(Format fmt, std::string const* noneAlias) const
 {
 	std::string stripped_name, stripped_value;
 
@@ -42,8 +42,8 @@ std::string Predicate::str(Format fmt) const
 	}
 	
 	// Strip the 'saniObj_' from each of the objects in the name.
-	size_t pos; 
-	while ((pos = stripped_name.find("saniObj_")) != std::string::npos) {
+	size_t pos = 0; 
+	while ((pos = stripped_name.find("saniObj_", pos)) != std::string::npos) {
 		stripped_name.replace(pos, 8, "");
 	}
 
@@ -54,6 +54,17 @@ std::string Predicate::str(Format fmt) const
 		stripped_value = value();
 	}
 
+	// Replace the none alias with none again.
+	if (noneAlias && *noneAlias != "") {
+		pos = 0;
+		while ((pos = stripped_value.find(*noneAlias, pos)) != std::string::npos) {
+			stripped_value.replace(pos, noneAlias->size(), "none");
+	 	}	
+		pos = 0; 
+		while ((pos = stripped_name.find(*noneAlias, pos)) != std::string::npos) {
+			stripped_name.replace(pos, noneAlias->size(), "none");
+		}
+	}
 
 	// Most of the special formatting only happens to special predicates, so check that first.
 	if(type() == T_UNKNOWN) {

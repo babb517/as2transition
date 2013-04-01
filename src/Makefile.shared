@@ -1,5 +1,3 @@
-SUFFIXES = 
-
 # Debugging Flags
 if DEBUG
 AM_CFLAGS = -g3 -O0 -DDEBUG
@@ -10,7 +8,6 @@ AM_CXXFLAGS = -O3 -DNDEBUG --std=c++0x
 endif
 
 # RE2C rules
-SUFFIXES += .re2c
 if MAINTAINER_MODE
 if HAVE_RE2C
 .re2c.cpp:

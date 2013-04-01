@@ -103,11 +103,11 @@ size_t Timestep::output( std::ostream& out ) const {
 size_t Timestep::print(std::ostream& out, std::list<Predicate*> const& list, char const* lbl) const {
 	std::list<Predicate const*> tmp;
 	size_t sz;
-
+	
 	// figure out which preds we will be printing.
 	for (Predicate const* pred : list) {
 		if (pred->xpred() && !mConfig.showXPredicates) continue;
-		if (pred->negative() && !mConfig.showNegPredicates) continue;
+		if (pred->negative(&mConfig.noneAlias) && !mConfig.showNegPredicates) continue;
 		if (pred->type() == Predicate::T_CONTRIB && !mConfig.showContribPredicates) continue;
 		tmp.push_back(pred);
 	}
@@ -118,10 +118,10 @@ size_t Timestep::print(std::ostream& out, std::list<Predicate*> const& list, cha
 		if (lbl) out << "\n\n\t" << lbl << ": ";
 
 		// print the predicates
-		for (Predicate const* pred : list) {
+		for (Predicate const* pred : tmp) {
 			out
 				<< ((mConfig.onePredPerLine) ? "\n\t\t" : " ")
-				<< pred->str(mConfig.predFormat) ;
+				<< pred->str(mConfig.predFormat, &mConfig.noneAlias) ;
 		}
 
 	}
