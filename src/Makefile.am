@@ -1,29 +1,38 @@
 include Makefile.shared
 
+as2transincludedir = $(includedir)/as2transition
 
-#noinst_LIBRARIES = libas2transition.a
+
+lib_LIBRARIES = libas2transition.a
 bin_PROGRAMS = as2transition
+
+as2transinclude_HEADERS = \
+	TransitionFormatter.h \
+	TransitionPath.h \
+	Predicate.h \
+	StringUtils.h \
+	Timestep.h
 
 BUILT_SOURCES = \
 	TransitionFormatter.cpp
 
-#libas2transition_a_SOURCES = 
-#	TransitionFormatter.re2c \
-#	TransitionPath.cpp \
-#	Timestep.cpp \
-#	Predicate.cpp \
-#	StringUtils.cpp 
-
-
-as2transition_SOURCES = \
-	main.cpp \
-	TransitionFormatter.re2c \
+libas2transition_a_SOURCES = \
+	TransitionFormatter.cpp \
 	TransitionPath.cpp \
 	Timestep.cpp \
 	Predicate.cpp \
 	StringUtils.cpp 
 
-#as2transition_LDADD = libas2transition.a
+
+as2transition_SOURCES = \
+	main.cpp 
+#	TransitionFormatter.cpp \
+#	TransitionPath.cpp \
+#	Timestep.cpp \
+#	Predicate.cpp \
+#	StringUtils.cpp 
+
+as2transition_LDADD = libas2transition.a
 
 
 
