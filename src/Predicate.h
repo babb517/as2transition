@@ -127,7 +127,7 @@ class Predicate
 	/// Determines if the predicate's value is 'none'.
 	/// @param noneAlias A value to replace w/ 'none' during printing (or NULL).
 	/// @param config The configuration used to resolve the alias.
-	inline bool isNone(std::string const* noneAlias = NULL) const { return value() == "none" || (noneAlias && value() == *noneAlias); }
+	inline bool isNone(std::string const* noneAlias = NULL) const { return value() == "none" || (noneAlias && value() != "" && value() == *noneAlias); }
 	
 	/// Determines if the predicate's value is 'true'.
 	inline bool isTrue() const { return value() == "true"; }
