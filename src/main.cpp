@@ -271,25 +271,25 @@ int main(int argc, char** argv)
 
 		// ---------------------------------------------------------------------------
 
-		// break if we've hit the footer.
-		
 		// clasp
+/*
 		if (strTempString == "SATISFIABLE" || strTempString == "UNSATISFIABLE") {
 			// skip it.
 			skipline(istIn);
-			break;
+			continue;
 		}
-		
+*/		
 		// cmodels
 		// no footer
 
 		// smodels
+/*
 		if (strTempString == "True" || strTempString == "False") {
 			// skip it.
 			skipline(istIn);
-			break;
+			continue;
 		}
-		
+*/		
 		// oclingo
 		// no footer
 	
