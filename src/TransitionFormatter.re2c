@@ -66,6 +66,8 @@ void TransitionFormatter::help(std::ostream& out, bool shorthand) {
 		<< "         Displays all predicates, positive and negative." 								<< std::endl
 		<< "  --negated[=true|false]" << ((shorthand) ? " OR -n" : "")								<< std::endl
 		<< "         Sets whether to show negative constants which the value of 'none' or 'false'"	<< std::endl
+		<< "  --strong-negation[=true|false]"														<< std::endl
+		<< "         Sets whether to show predicates of the form -p."						 		<< std::endl
 		<< "  --contribs[=true|false]" << ((shorthand) ? " OR -c" : "")								<< std::endl
 		<< "         Sets whether to show formatted \"contribution\" and \"x_contrib\" constants"	<< std::endl
 		<< "         which are used as intermediates for C+ additive constants."					<< std::endl
@@ -108,6 +110,8 @@ bool TransitionFormatter::parseOption(char const* opt, bool shorthand) {
 
 		"--negated"									{ return setOption(OPT_SHOW_NEGATED, "true");							}
 		"--negated="[a-z]+							{ return setOption(OPT_SHOW_NEGATED, opt+strlen("--negated=")); 		}
+		"--strong-negated"							{ return setOption(OPT_SHOW_STRONG_NEGATED, "true");					}
+		"--strong-negated="[a-z]+					{ return setOption(OPT_SHOW_STRONG_NEGATED, opt+strlen("--strong-negated="));}
 		"--contribs"								{ return setOption(OPT_SHOW_CONTRIBS, "true");					 		}
 		"--contribs="[a-z]+							{ return setOption(OPT_SHOW_CONTRIBS, opt+strlen("--contribs=")); 		}
 		"--xpreds"									{ return setOption(OPT_SHOW_XPREDS, "true"); 		return true; 		}
@@ -176,6 +180,13 @@ bool TransitionFormatter::setOption(Option opt, char const* val) {
 		if (!val)						return false;
 		if (!strcmp(val,"true"))		config().showNegPredicates = true;
 		else if (!strcmp(val,"false"))	config().showNegPredicates = false;
+		else 							return false;
+		return true;
+
+	case OPT_SHOW_STRONG_NEGATED:
+		if (!val)						return false;
+		if (!strcmp(val,"true"))		config().showStrongNegPredicates = true;
+		else if (!strcmp(val,"false"))	config().showStrongNegPredicates = false;
 		else 							return false;
 		return true;
 

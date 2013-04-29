@@ -58,6 +58,7 @@ public:
 
 	bool showContribPredicates; 	///< If true, we'll display formatted predicates whose inner predicate is "contribution" (usually hidden as an "internal" thing).
 	bool showNegPredicates; 		///< If true, predicates of the form something=false or something=none will be shown.
+	bool showStrongNegPredicates;	///< If true, predicates of the form -something will be shown.
 	bool showXPredicates; 			///< If true, we'll display formatted predicates whose inner predicate starts with "x_" (e.g., "<prefix>(x_contrib(...),0)").
 	bool showUnformattedPredicates;	///< If true, we'll display predicates which aren't formatted in the expected manner.
 
@@ -74,6 +75,7 @@ public:
 		  separateAbnormalities(true),
 		  showContribPredicates(false),
 		  showNegPredicates(false),
+		  showStrongNegPredicates(false),
 		  showXPredicates(false),
 		  showUnformattedPredicates(true),
 		  predFormat(FMT_SHORT),

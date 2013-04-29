@@ -108,6 +108,7 @@ size_t Timestep::print(std::ostream& out, std::list<Predicate*> const& list, cha
 	for (Predicate const* pred : list) {
 		if (pred->xpred() && !mConfig.showXPredicates) continue;
 		if (pred->negative(&mConfig.noneAlias) && !mConfig.showNegPredicates) continue;
+		if (pred->isStrongNeg() && !mConfig.showStrongNegPredicates) continue;
 		if (pred->type() == Predicate::T_CONTRIB && !mConfig.showContribPredicates) continue;
 		tmp.push_back(pred);
 	}

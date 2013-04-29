@@ -61,6 +61,7 @@ public:
 		OPT_SHOW_ALL,					///< Show almost all predicates.
 
 		OPT_SHOW_NEGATED,				///< show negated predicates (true, false).
+		OPT_SHOW_STRONG_NEGATED,		///< show strong negated predicates (true, false).
 		OPT_SHOW_CONTRIBS,				///< show contribution predicates (true, false).
 		OPT_SHOW_XPREDS,				///< show x_ predicates (true, false).
 		

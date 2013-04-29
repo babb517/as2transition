@@ -68,31 +68,33 @@ std::string Predicate::str(Format fmt, std::string const* noneAlias) const
 
 	// Most of the special formatting only happens to special predicates, so check that first.
 	if(type() == T_UNKNOWN) {
-		return stripped_name;
+		return (isStrongNeg() ? "-" : "") + stripped_name;
 	}
 
 	switch (fmt) {
 	case FMT_SHORT:
-		if (boolean())
+		if (boolean() && !isStrongNeg())
 			return (isFalse() ? "-" : "") + stripped_name;
 
 		/* no break */
 	case FMT_EQL:
 		if (hasEql())
-			return stripped_name + "=" + stripped_value;
-		else return stripped_name;
+			return (isStrongNeg() ? "-" : "") + stripped_name + "=" + stripped_value;
+		else return (isStrongNeg() ? "-" : "") + stripped_name;
 
 	case FMT_INNER:
 		switch (hasEql()) {
-		case HASEQL_EQL:	return "eql(" + stripped_name + ", " + stripped_value + ")";
-		case HASEQL_EQ:		return "eq("  + stripped_name + ", " + stripped_value + ")";
-		case HASEQL_NONE:	return stripped_name;
+		case HASEQL_EQL:	return (isStrongNeg() ? "-" : "") + std::string("eql(") + stripped_name + ", " + stripped_value + ")";
+		case HASEQL_EQ:		return (isStrongNeg() ? "-" : "") + std::string("eq(")  + stripped_name + ", " + stripped_value + ")";
+		case HASEQL_NONE:	return (isStrongNeg() ? "-" : "") + stripped_name;
 		}
 		
 
 	case FMT_RAW:
 	default:
 		std::stringstream ret;
+
+		if (isStrongNeg()) ret << "-";
 
 		ret << predTypeToPrefixString(type());
 
@@ -158,7 +160,7 @@ Predicate::Type Predicate::getPrefixType(std::string const& text, size_t* outOff
 	}
 }
 
-void Predicate::getPredInfo(std::string const& text, Type& outType, EqlVal& outHasEql, std::string& outName, bool& outXPred, std::string& outVal, size_t& outTime)
+void Predicate::getPredInfo(std::string const& text, Type& outType, EqlVal& outHasEql, std::string& outName, bool& outXPred, bool& outStrongNeg, std::string& outVal, size_t& outTime)
 {
 	// Intermediate results
 	std::string tmpName;
@@ -171,6 +173,12 @@ void Predicate::getPredInfo(std::string const& text, Type& outType, EqlVal& outH
 	char const* tempStr = trimStr.c_str();
 	size = trimStr.size();
 
+	if (tempStr[0] == '-') {
+		outStrongNeg = true;
+		tempStr++;
+	} else {
+		outStrongNeg = false;
+	}
 	
 	outType = getPrefixType(trimStr, &offset);
 

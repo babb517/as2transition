@@ -59,7 +59,7 @@ class Predicate
 	 * @param name - The full name of the predicate.
 	 */
 	Predicate(std::string const& name)
-		: mName(name), mTimeStamp(TIMELESS), mPredType(T_UNKNOWN), mHasEql(HASEQL_NONE), mXpred(NULL), mValue("")
+		: mName(name), mTimeStamp(TIMELESS), mPredType(T_UNKNOWN), mHasEql(HASEQL_NONE), mXpred(false), mStrongNeg(false), mValue("")
 			{ /* Intentionally Left Blank */ }
 	
 	/**
@@ -68,10 +68,11 @@ class Predicate
 	 * @param name - The name of the predicate.
 	 * @param timeStamp - The time at which the predicate is relevant.
 	 * @param xpred - Whether the predicate's name is x_<name>, which marks it as an internal predicate.
+	 * @param strongNeg - Whether the predicate begins with '-'.
 	 * @param value - The (optional) value the predicate has taken. The empty string if the predicate doesn't have an eql() or eq() wrapper.
 	 */
-	inline Predicate(Type predType, std::string const& name, size_t timeStamp, bool xpred, std::string const& value = "")
-		: mName(name), mTimeStamp(timeStamp), mPredType(predType), mHasEql((value != "") ? HASEQL_EQL : HASEQL_NONE), mXpred(xpred), mValue(value)
+	inline Predicate(Type predType, std::string const& name, size_t timeStamp, bool xpred, bool strongNeg, std::string const& value = "")
+		: mName(name), mTimeStamp(timeStamp), mPredType(predType), mHasEql((value != "") ? HASEQL_EQL : HASEQL_NONE), mXpred(xpred), mStrongNeg(strongNeg), mValue(value)
 		{ /* Intentionally Left Blank */ }
 	
 	/**
@@ -132,9 +133,12 @@ class Predicate
 	/// Determines if the predicate's value is 'true'.
 	inline bool isTrue() const { return value() == "true"; }
 
-	/// DeterminEs if the predicate's value is 'false'.
+	/// Determines if the predicate's value is 'false'.
 	inline bool isFalse() const { return value() == "false"; }
 
+
+	/// Determines if the predicate begins with '-'.
+	inline bool isStrongNeg() const { return mStrongNeg; }
 
 
 	/**
@@ -168,10 +172,11 @@ class Predicate
 	 * @param outHasEql - Set to true if the predicate has an eql(<name>,<value>) or eq(<name>,<value>) function wrapper.
 	 * @param outName - The name of the predicate (text in the event we were unable to identify the predicate or the predicate is malformed).
 	 * @param outXPred - Whether the predicate's name is of the form 'x_<pred>', which marks it as an internal predicate.
+	 * @param outStrongNeg - Whether the predicate begins with '-'.
 	 * @param outVal - The value the predicate has taken ("" if the predicate does not have an eql or eq function wrapper).
 	 * @param outTime - The timestamp for the predicate. Set to TIMELESS if the predicate appears to be rigid.
 	 */
-	static void getPredInfo(std::string const& text, Type& outType, EqlVal& outHasEql, std::string& outName, bool& outXPred, std::string& outVal, size_t& outTime);
+	static void getPredInfo(std::string const& text, Type& outType, EqlVal& outHasEql, std::string& outName, bool& outXPred, bool& outStrongNeg, std::string& outVal, size_t& outTime);
 
 	/**
 	 * Creates a predicate instance from a string containing the predicate.
@@ -181,7 +186,7 @@ class Predicate
 	inline static Predicate* makePredicate(std::string const& text) {
 		Predicate* ret = new Predicate("");
 		// populate!
-		getPredInfo(text, ret->mPredType, ret->mHasEql, ret->mName, ret->mXpred, ret->mValue, ret->mTimeStamp);
+		getPredInfo(text, ret->mPredType, ret->mHasEql, ret->mName, ret->mXpred, ret->mStrongNeg, ret->mValue, ret->mTimeStamp);
 		return ret;
 	}
 
@@ -199,6 +204,7 @@ class Predicate
 	Type mPredType;			///< The type of predicate that this instance represents.
 	EqlVal mHasEql;			///< True if the predicate has an eql(<name>,<value>) or eq(<name>,<value>) function wrapper, false otherwise.
 	bool mXpred;				///< True if the predicate's name has the form 'x_<name>', which marks it as an internal predicate.
+	bool mStrongNeg;		///< Whether the predicate begins with '-'.
 	std::string mValue;		///< The value the predicate has taken, or "" if there is no function wrapper.
 	
 };
