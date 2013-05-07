@@ -39,9 +39,9 @@ bool TransitionPath::add(Predicate* pred) {
 	} else {
 		size_t max = length();
 		while (max <= time) {
-			mSteps.push_back(Timestep(mConfig,max++));
+			mSteps.push_back(new Timestep(mConfig,max++));
 		}
-		mSteps[pred->time()].add(pred);
+		mSteps[time]->add(pred);
 		return true;
 	}
 }
@@ -53,8 +53,8 @@ std::ostream& TransitionPath::output(std::ostream& out) const {
 		out << std::endl;
 	}
 
-	for (Timestep const& ts : *this) {
-		out << ts;
+	for (Timestep const* ts : *this) {
+		out << *ts;
 		out << std::endl;
 	}
 	return out;

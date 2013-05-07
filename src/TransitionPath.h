@@ -39,15 +39,15 @@ private:
 	/* Members */
 	/**************************************************************************************/
 	Config mConfig;								///< System configuration.
-	std::vector<Timestep> mSteps;				///< The steps in the transition.
+	std::vector<Timestep*> mSteps;				///< The steps in the transition.
 	Timestep mTimeless;
 
 public:
 	/**************************************************************************************/
 	/* Types / Constants */
 	/**************************************************************************************/
-	typedef std::vector<Timestep>::iterator iterator;
-	typedef std::vector<Timestep>::const_iterator const_iterator;
+	typedef std::vector<Timestep*>::iterator iterator;
+	typedef std::vector<Timestep*>::const_iterator const_iterator;
 
 	static size_t const TIMELESS = Timestep::TIMELESS;
 
@@ -61,7 +61,10 @@ public:
 
 	/// Basic Destructor.
 	inline ~TransitionPath()
-	{ /* Intentionally Left Blank */ }
+	{ /* Intentionally Left Blank */ 
+		for (Timestep* ts : *this)
+			delete ts;
+	}
 
 	/**************************************************************************************/
 	/* Methods */
@@ -80,12 +83,12 @@ public:
 	/// Gets the specified timestep in the path (or NULL).
 	inline Timestep* step(size_t t) { 
 		if (t == TIMELESS) return &mTimeless; 
-		else return (t < length()) ? &mSteps[t] : NULL;
+		else return (t < length()) ? mSteps[t] : NULL;
 	}
 
 	inline Timestep const* step(size_t t) const { 
 		if (t == TIMELESS) return &mTimeless; 
-		else return (t < length()) ? &mSteps[t] : NULL;
+		else return (t < length()) ? mSteps[t] : NULL;
 	}
 
 	/// Adds the predicate to the path at the appropriate timestep, creating it if neccessary.
