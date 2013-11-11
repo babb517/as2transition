@@ -11,6 +11,7 @@ as2transinclude_HEADERS = \
 	TransitionPath.h \
 	Predicate.h \
 	StringUtils.h \
+	Config.h \
 	Timestep.h
 
 BUILT_SOURCES = \
@@ -34,5 +35,8 @@ as2transition_SOURCES = \
 
 as2transition_LDADD = libas2transition.a
 
-
+install-exec-hook:
+	chmod 755 $(as2transincludedir)
+	chmod 744 $(as2transincludedir)/*
+	chown root -R $(as2transincludedir)
 
