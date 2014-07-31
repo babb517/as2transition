@@ -280,6 +280,7 @@ TransitionPath* TransitionFormatter::format(std::istream& in, bool ignorenl) con
 	TransitionPath* path = new TransitionPath(config());
 	std::string token, tmp;
 	
+/*
 	Config::Solver::type solver = config()->solver();
 
 	// read next candidate token
@@ -301,7 +302,7 @@ TransitionPath* TransitionFormatter::format(std::istream& in, bool ignorenl) con
 		// oclingo
 		if(solver == Config::Solver::UNKNOWN) solver = Config::Solver::OCLINGO;
 	}
-
+*/
 
 	// Read until we reach the next line.
 	u::ref_ptr<parser::PredicateParser> parser = new parser::PredicateParser(in, true);

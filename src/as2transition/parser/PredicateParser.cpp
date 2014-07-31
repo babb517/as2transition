@@ -17,6 +17,7 @@ int         lemon_parserPreInject(void* yyp, int pop, ReferencedString const** t
 void		lemon_parserAttemptReduce(void* yyp, as2transition::parser::PredicateParser* parser);
 #ifndef NDEBUG
 void 		lemon_parserTrace(FILE *TraceFILE, char const*zTracePrompt);
+char const*	lemon_parserTokenName(int tcode);
 #endif
 
 namespace as2transition {

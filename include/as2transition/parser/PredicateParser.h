@@ -87,7 +87,9 @@ public:
 	/// INTERNAL FUNCTION
 	/// Adds a freshly parsed predicate to the list
 	/// @param pred The predicate to add
-	inline void _add(Predicate* pred)						{ _predicates.push_back(pred); }
+	inline void _add(Predicate* pred)						{ 
+		_predicates.push_back(pred); 
+	}
 
 	/// INTERNAL FUNCTION
 	/// Registers a parse error.

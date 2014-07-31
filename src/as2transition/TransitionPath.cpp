@@ -49,7 +49,7 @@ bool TransitionPath::add(Predicate* pred) {
 // Prints the path to the stream
 std::ostream& TransitionPath::output(std::ostream& out) const {
 	if (_timeless->num()) {
-		out << _timeless;
+		out << *_timeless;
 		out << std::endl;
 	}
 

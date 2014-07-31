@@ -88,9 +88,9 @@ std::ostream& operator<<(std::ostream& out, PredElement const& elem) {
 
 	if (*elem.base() == "=" && elem.arity() == 2) {
 		// special case... if the element is =(c,v) then use infix notation...
-		out << elem.get(0);
+		out << *elem.get(0);
 		out << *elem.base();
-		out << elem.get(1);
+		out << *elem.get(1);
 	} else if (*elem.base() == "~" && elem.arity() == 1) {
 		// special case... if the elemen is ~(c) then omit the parens...
 		out << *elem.base() << *elem.get(0);

@@ -28,11 +28,14 @@ Scanner::~Scanner() {
 int Scanner::readToken(ReferencedString*& token) {
 
 	int ret;
+	
 
+re2c_start:
+	_marker = _token = _cursor;
 	/*!re2c
 		
 		re2c:define:YYCTYPE						= char;
-		re2c:define:YYMARKER					= marker;
+		re2c:define:YYMARKER					= _marker;
 		re2c:define:YYCURSOR					= _cursor;
 		re2c:define:YYLIMIT						= _limit;
 		re2c:define:YYGETCONDITION				= _cond;
@@ -88,6 +91,8 @@ int Scanner::readToken(ReferencedString*& token) {
 												  goto re2c_finish;					
 												}
 		
+		<*> WS+									{ goto re2c_start; }
+
 		<*> .									{ ret = T_ERR_UNKNOWN_SYMBOL;			goto re2c_finish;					}
 
 	*/
@@ -142,6 +147,7 @@ void Scanner::fill(size_t n) {
 			while (_source.good() && c && c != '\n' && read_amount) {
 				*readpos++ = c; 
 				read_amount--;
+				c = _source.get();
 			}
 			if (c == '\n') _newline = true;
 		}

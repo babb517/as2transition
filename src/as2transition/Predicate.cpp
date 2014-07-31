@@ -16,9 +16,8 @@ namespace as2transition {
 
 Predicate::Predicate(ReferencedString const* b, ElementList* args, bool negated)
 	: PredElement(PredElement::Type::PREDICATE, b, args),
-	  _type(Type::UNKNOWN), _timestep(TIMELESS), _predmask(Config::PredType::UNKNOWN),
+	  _type(Type::UNKNOWN), _timestep(TIMELESS), _predmask(0),
 	  _eq(false) {
-
 
 	// Figure out what format we're in....
 
@@ -110,8 +109,8 @@ Predicate::Predicate(ReferencedString const* b, ElementList* args, bool negated)
 				}
 				
 				// verify arity...
-				if (t == Type::RIGID && iarity != arity() + 1) t = Type::UNKNOWN;
-				else if (t != Type::RIGID && iarity != arity() + 2) t = Type::UNKNOWN;
+				if (t == Type::RIGID && iarity + 1 != arity()) t = Type::UNKNOWN;
+				else if (t != Type::RIGID && iarity + 2!= arity()) t = Type::UNKNOWN;
 
 				
 				if (t != Type::UNKNOWN) {
@@ -191,6 +190,7 @@ Predicate::~Predicate() {
 
 PredElement* Predicate::format(Config const* config) const {
 	/// Cull things we shouldn't show...
+
 	if (!config->show(predmask())) return NULL;
 
 	// If this predicate isn't well formed, just return this
