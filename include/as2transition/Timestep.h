@@ -22,48 +22,51 @@
 
 #pragma once
 
-#include <climits> // For INT_MIN
-#include <cstdlib> // For exit()
 #include <iostream>
 #include <list>
 #include <string>
 
-#include "Config.h"
-#include "Predicate.h"
+#include "babb/utils/memory.h"
+
+
+#include "as2transition/Config.h"
+#include "as2transition/Predicate.h"
 
 namespace as2transition {
 
 /**
  * Holds information about the predicates that are true at a given time step.
  */
-class Timestep 
+class Timestep : public babb::utils::Referenced
 {
-private:
-	/***************************************************************************/
-	/* Members */
-	/***************************************************************************/
-	size_t mTime; 							///< The time step this structure represents in the solution.
-	Config mConfig;						///< The configuration for the AS2Transition. Used to write out the timestep.
-
-	
-	std::list<Predicate*> mConstants;	///< Complete list of all constants associated with this timestep.
-
-	std::list<Predicate*> mFluents; 	///< The fluents that are true at this time step.
-	std::list<Predicate*> mStaticAbs; 	///< The static abnormalities that are exhibited at this time step.
-	
-	std::list<Predicate*> mActions; 	///< The actions that occurred in the next transition at this time step.
-	std::list<Predicate*> mDynamicAbs; 	///< The dynamic abnormalities that occurred in the next transition.
 public:
-
 	/***************************************************************************/
 	/* Types / Constants */
 	/***************************************************************************/
-	typedef std::list<Predicate*>::iterator iterator;
-	typedef std::list<Predicate*>::const_iterator const_iterator;
+	typedef std::list<babb::utils::ref_ptr<Predicate> > PredList;
+	typedef PredList::iterator iterator;
+	typedef PredList::const_iterator const_iterator;
 
 	/// Time value to indicate that the timestep is not associated with a step in
 	/// the transition system.
 	static const size_t TIMELESS = Predicate::TIMELESS;
+
+
+private:
+	/***************************************************************************/
+	/* Members */
+	/***************************************************************************/
+	size_t _time; 							///< The time step this structure represents in the solution.
+	babb::utils::ref_ptr<const Config> _config;	///< AS2transition configuration information...
+
+	PredList _constants;				///< Complete list of all constants associated with this timestep.
+
+	PredList _fluents; 					///< The fluents that are true at this time step.
+	PredList _extFluents; 				///< The static abnormalities that are exhibited at this time step.
+	
+	PredList _actions; 					///< The actions that occurred in the next transition at this time step.
+	PredList _extActions; 				///< The dynamic abnormalities that occurred in the next transition.
+public:
 
 
 	/***************************************************************************/
@@ -73,69 +76,63 @@ public:
 	/// Constructor.
 	/// @param config The AS2Transition configuration used to format the timestep.
 	/// @param time The time stamp associated with this timestep (or TIMELESS).
-	inline Timestep(Config const& config, size_t time = TIMELESS)
-		: mTime(time), mConfig(config)
+	inline Timestep(Config const* config, size_t time = TIMELESS)
+		: _time(time), _config(config)
 	{ /* Intentionally left blank */ }
 	
 	/// Destructor.  Deallocated associated predicates.
 	virtual inline ~Timestep() { 
-		for (iterator it = mConstants.begin(); it != mConstants.end(); it++) delete *it;
+		// intentionally left blank
 	}
 	
 	/** 
 	 * Accessor for timeStep.
 	 * @return The value of timeStep.
 	 */
-	inline size_t time() const 							{ return mTime; }
+	inline size_t time() const 							{ return _time; }
 
-	/**
-	 * Mutator for timeStep.
-	 * @param newTimeStep - The new value for timeStep.
-	 */
-	inline void time(size_t newTimeStep) 				{ mTime = newTimeStep; }
-	
 	/** 
-	 * Adds a predicate to our list of predicates, creating a new Predicate object to hold the appropriate data.
+	 * Adds a predicate to our list of predicates.
 	 * Automatically keeps the predicates sorted.
 	 * @param newPredicate - The predicate object to add.
 	 */
 	void add(Predicate* newPredicate);
 	
 	/// Gets an iterator for the beginning of the list of all constants associated with the timestep.
-	inline const_iterator begin() const 				{ return mConstants.begin(); }
+	inline const_iterator begin() const 				{ return _constants.begin(); }
 	/// Gets an iterator for the end of the list of all constants associated with the timestep.
-	inline const_iterator end() const 					{ return mConstants.end(); }
+	inline const_iterator end() const 					{ return _constants.end(); }
 	/// Gets the number of constants in the timestep.
-	inline size_t num() const							{ return mConstants.size(); }
+	inline size_t num() const							{ return _constants.size(); }
 
 	/// Gets an iterator for the beginning of the list of fluents in the timestep.
-	inline const_iterator beginFluents() const 			{ return mFluents.begin(); }
+	inline const_iterator beginFluents() const 			{ return _fluents.begin(); }
 	/// Gets an iterator for the end the list of fluents in the timestep.
-	inline const_iterator endFluents() const 			{ return mFluents.end(); }
+	inline const_iterator endFluents() const 			{ return _fluents.end(); }
 	/// Gets the number of fluents in the timestep.
-	inline size_t numFluents() const					{ return mFluents.size(); }
+	inline size_t numFluents() const					{ return _fluents.size(); }
 
 	/// Gets an iterator for the beginning of the list of static abnormalities in the timestep.
-	inline const_iterator beginStaticAbs() const 		{ return mStaticAbs.begin(); }
+	inline const_iterator beginExtFluents() const 		{ return _extFluents.begin(); }
 	/// Gets an iterator for the end the list of static abnormalities in the timestep.
-	inline const_iterator endStaticAbs() const 			{ return mStaticAbs.end(); }
+	inline const_iterator endExtFluents() const 		{ return _extFluents.end(); }
 	/// Gets the number of static abnormalities in teh timestep
-	inline size_t numStaticAbs() const					{ return mStaticAbs.size(); }
+	inline size_t numExtFluents() const					{ return _extFluents.size(); }
 	
 
 	/// Gets an iterator for the beginning of the list of actions occurring in the transition.
-	inline const_iterator beginActions() const 			{ return mActions.begin(); }
+	inline const_iterator beginActions() const 			{ return _actions.begin(); }
 	/// Gets an iterator for the beginning of the list of actions occurring in the transition.
-	inline const_iterator endActions() const 			{ return mActions.end(); }
+	inline const_iterator endActions() const 			{ return _actions.end(); }
 	/// Gets the number of actions in the timestep.
-	inline size_t numActions()							{ return mActions.size(); }
+	inline size_t numActions()							{ return _actions.size(); }
 
 	/// Gets an iterator for the beginning of the list of dynamnic abnormalities occurring in the transition.
-	inline const_iterator beginDynamicAbs() const 		{ return mDynamicAbs.begin(); }
+	inline const_iterator beginExtActions() const 		{ return _extActions.begin(); }
 	/// Gets an iterator for the beginning of the list of dynamic abnormalities occurring in the transition.
-	inline const_iterator endDynamicAbs() const 		{ return mDynamicAbs.end(); }
+	inline const_iterator endExtActions() const 		{ return _extActions.end(); }
 	/// Gets the number of dynamic abnormalities in the timestep.
-	inline size_t numDynamicAbs() const					{ return mDynamicAbs.size(); }	
+	inline size_t numExtActions() const					{ return _extActions.size(); }	
 
 	/**
 	 * Outputs the contents of this timestep to one or more output streams.
@@ -149,7 +146,7 @@ private:
 	/// Simple method used to insert items into a sorted list.
 	/// @param list The list to insert the item into.
 	/// @param pred The item to insert.
-	void insert(std::list<Predicate*>& list, Predicate* pred);
+	void insert(PredList& list, Predicate* pred);
 
 	/**
 	 * Prints out the provided list and associated label (if anything would print) according to configuration policy.
@@ -158,7 +155,7 @@ private:
 	 * @param lbl The label to print out (only prints if any of the predicates in the list would print according to the configuration.
 	 * return The number of predicates printed.
 	 */
-	size_t print(std::ostream& out, std::list<Predicate*> const& list, char const* lbl = NULL) const;
+	size_t print(std::ostream& out, PredList const& list, char const* lbl = NULL) const;
 
 };
 

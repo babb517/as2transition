@@ -28,6 +28,11 @@
  */
 
 /* History:
+ * v3.1 - Secondary restructure of parsing mechanism.
+		- Predicate structure is now completely parsed.
+		- now supports non-reified predicates of the form c_<type>_<arity>(<arg0>, <arg1>, ..., <argn>, <value>, <time>)
+		- now supports non-reified external predicates of the form e_<type>_<arity>(<arg0>, <arg1>, ..., <argn>, <value>, <time>)
+		- Other compatibility changes for cplus2asp version 3
  * v3.0 - Major program restructure. 
  *      - Now exposes an API to allow for parsing answer sets at the program level. 
  *      - Rewrite of the parser driver to increase stability and allow for complete oClingo compatibility.
@@ -67,8 +72,11 @@
 #include <algorithm>
 #include <cctype>
 
-#include "TransitionFormatter.h"
+#include "babb/utils/memory.h"
 
+#include "as2transition/TransitionFormatter.h"
+
+namespace u = babb::utils;
 using namespace as2transition;
 
 
@@ -125,7 +133,7 @@ int main(int argc, char** argv)
 
 	string strInFile, strOutFile, strTempString;
 
-	TransitionFormatter formatter;
+	u::ref_ptr<TransitionFormatter> formatter = new TransitionFormatter();
 
 	size_t solutionNum = 0; // The number of the solution (answer set) currently being processed. 1-based (first solution is #1).
 	bool blnShowHelp = false, blnBadArgs = false;
@@ -133,7 +141,7 @@ int main(int argc, char** argv)
 	
 	for(int i = 1; i < argc && !blnBadArgs && !blnShowHelp; i++)
 	{
-		if(!formatter.parseOption(argv[i], true)) {
+		if(!formatter->parseOption(argv[i], true)) {
 			if(strcmp(argv[i], "-f") == 0)
 			{	// Input file being specified.  Verify they actually gave us a file argument (and they haven't already given this option).
 				if(i < argc-1 && strInFile == "") {
@@ -303,14 +311,14 @@ int main(int argc, char** argv)
 			ostOut << "Solution:";
 			printline(istIn, ostOut);
 			// show the answer set
-			formatter.format(istIn, ostOut, false);
+			formatter->format(istIn, ostOut, false);
 			istIn >> strTempString;
 			continue;
 		} else if (strTempString == "Step:") {
 			// oClingo compatibility: Prefaced with 'Step:'
 			skipline(istIn);
 			solutionNum++;
-			formatter.format(istIn, ostOut, false);
+			formatter->format(istIn, ostOut, false);
 			istIn >> strTempString;
 			continue;
 		}

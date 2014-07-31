@@ -24,8 +24,11 @@
 
 #include <vector>
 
-#include "Timestep.h"
-#include "Config.h"
+#include "babb/utils/memory.h"
+#include "memwrappers.h"
+
+#include "as2transition/Timestep.h"
+#include "as2transition/Config.h"
 
 namespace as2transition {
 
@@ -33,62 +36,63 @@ namespace as2transition {
  * @brief Represents a path through a transition system consisting of a number of timesteps 
  * (with assoicated states / actions / abnormalities) 
  */
-class TransitionPath {
-private:
-	/**************************************************************************************/
-	/* Members */
-	/**************************************************************************************/
-	Config mConfig;								///< System configuration.
-	std::vector<Timestep*> mSteps;				///< The steps in the transition.
-	Timestep mTimeless;
-
+class TransitionPath : public babb::utils::Referenced {
 public:
 	/**************************************************************************************/
 	/* Types / Constants */
 	/**************************************************************************************/
-	typedef std::vector<Timestep*>::iterator iterator;
-	typedef std::vector<Timestep*>::const_iterator const_iterator;
+	typedef std::vector<babb::utils::ref_ptr<Timestep> > StepList;
+	typedef StepList::iterator iterator;
+	typedef StepList::const_iterator const_iterator;
 
 	static size_t const TIMELESS = Timestep::TIMELESS;
+
+private:
+	/**************************************************************************************/
+	/* Members */
+	/**************************************************************************************/
+	babb::utils::ref_ptr<const Config> _config;								///< System configuration.
+	StepList _steps;														///< The steps in the transition.
+	babb::utils::ref_ptr<Timestep> _timeless;
+
+public:
 
 	/**************************************************************************************/
 	/* Constructors / Destructors */
 	/**************************************************************************************/
 	/// Basic Constructor.
-	inline TransitionPath(Config const& config)
-		: mConfig(config), mTimeless(config)
-	{ /* Intentionally left blank */ }
+	inline TransitionPath(Config const* config)
+		: _config(config) {
+		_timeless = new Timestep(config);
+	}
 
 	/// Basic Destructor.
 	inline ~TransitionPath()
-	{ /* Intentionally Left Blank */ 
-		for (Timestep* ts : *this)
-			delete ts;
-	}
+	{ /* Intentionally Left Blank */ }
 
 	/**************************************************************************************/
 	/* Methods */
 	/**************************************************************************************/
 	/// Gets an iterator pointing to the beginning of the path
-	inline iterator begin()						{ return mSteps.begin(); }
-	inline const_iterator begin() const			{ return mSteps.begin(); }
+	inline iterator begin()						{ return _steps.begin(); }
+	inline const_iterator begin() const			{ return _steps.begin(); }
 
 	/// Gets an iterator pointing to the end of the path.
-	inline iterator end()						{ return mSteps.end(); }
-	inline const_iterator end() const			{ return mSteps.end(); }
+	inline iterator end()						{ return _steps.end(); }
+	inline const_iterator end() const			{ return _steps.end(); }
 
 	/// Gets the number of steps in the path
-	inline size_t length() const				{ return mSteps.size(); }
+	inline size_t length() const				{ return _steps.size(); }
 
 	/// Gets the specified timestep in the path (or NULL).
 	inline Timestep* step(size_t t) { 
-		if (t == TIMELESS) return &mTimeless; 
-		else return (t < length()) ? mSteps[t] : NULL;
+		if (t == TIMELESS) return _timeless; 
+		else return (t < length()) ? _steps[t] : NULL;
 	}
 
 	inline Timestep const* step(size_t t) const { 
-		if (t == TIMELESS) return &mTimeless; 
-		else return (t < length()) ? mSteps[t] : NULL;
+		if (t == TIMELESS) return _timeless; 
+		else return (t < length()) ? _steps[t] : NULL;
 	}
 
 	/// Adds the predicate to the path at the appropriate timestep, creating it if neccessary.

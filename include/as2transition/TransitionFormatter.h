@@ -25,10 +25,13 @@
 
 #include <iostream>
 
-#include "TransitionPath.h"
-#include "Timestep.h"
-#include "Predicate.h"
-#include "Config.h"
+#include "babb/utils/memory.h"
+
+#include "as2transition/TransitionPath.h"
+#include "as2transition/Timestep.h"
+#include "as2transition/Predicate.h"
+#include "as2transition/parser/PredicateParser.h"
+#include "as2transition/Config.h"
 
 using namespace std;
 
@@ -37,12 +40,12 @@ namespace as2transition {
 /**
  * @brief An exposed API for formatting answer sets using as2transition.
  */
-class TransitionFormatter {
+class TransitionFormatter : public babb::utils::Referenced {
 private:
 	/*****************************************************************************************/
 	/* Members */
 	/*****************************************************************************************/
-	 Config mConfig;			///< System configuration.
+	babb::utils::ref_ptr<Config> _config;			///< System configuration.
 
 public:
 	/*****************************************************************************************/
@@ -50,39 +53,43 @@ public:
 	/*****************************************************************************************/
 
 	/// A enum of the various user-exposed options.
-	enum Option {
-		OPT_FMT,						///< General format option. Pass "raw", "inner", "eql", or "short" as value.
-										///< "raw" - Do not format predicates.
-										///< "inner" - Strip h(), occ(), ab_h(), and ab_occ()
-										///< "eql" - Write eql(c,v) as c=v
-										///< "short" - Compress c=true and c=false to c and -c.
-		
-		OPT_SHOW_ALMOST_ALL,			///< Show all predicates.
-		OPT_SHOW_ALL,					///< Show almost all predicates.
+	struct Option {
+			enum type {
+				FMT,						///< General format option. Pass "raw", "inner", "eql", or "short" as value.
+												///< "raw" - Do not format predicates.
+												///< "inner" - Strip h(), occ(), ab_h(), and ab_occ()
+												///< "eql" - Write eql(c,v) as c=v
+												///< "short" - Compress c=true and c=false to c and -c.
+				
+				SHOW_ALMOST_ALL,			///< Show all predicates.
+				SHOW_ALL,					///< Show almost all predicates.
 
-		OPT_SHOW_NEGATED,				///< show negated predicates (true, false).
-		OPT_SHOW_STRONG_NEGATED,		///< show strong negated predicates (true, false).
-		OPT_SHOW_CONTRIBS,				///< show contribution predicates (true, false).
-		OPT_SHOW_XPREDS,				///< show x_ predicates (true, false).
-		
-		OPT_SEP_ACTIONS,				///< Separate actions from fluents (true, false).
-		OPT_SEP_ABS,					///< Separate abnormalities from regular constants. (true, false).
+				SHOW_NEGATED,				///< show negated predicates (true, false).
+				SHOW_STRONG_NEGATED,		///< show strong negated predicates (true, false).
+				SHOW_CONTRIBS,				///< show contribution predicates (true, false).
+				SHOW_XPREDS,				///< show x_ predicates (true, false).
+				
+				SEP_ACTIONS,				///< Separate actions from fluents (true, false).
+				SEP_ABS,					///< Separate abnormalities from regular constants. (true, false).
 
-		OPT_LINES,						///< Separate constants onto separate lines.
-		OPT_NONE_ALIAS					///< Replace the provided value with 'none'.
+				STRIP_SAN,					///< Whether we should strip sanitization prefixes saniConst_ and saniObj_ from constants and objects
+				STRIP_PREFIX,				///< Whether we should strip non-reified constant prefixes c_X_X, e_X_X, and o_ from constants and objects
+
+				LINES,						///< Separate constants onto separate lines.
+				NONE_ALIAS					///< Replace the provided value with 'none'.
+			};
 	};
-
 
 	/*****************************************************************************************/
 	/* Constructors / Destructor */
 	/*****************************************************************************************/
 	/// Default Constructor
 	inline TransitionFormatter()
-	{ /* Intentionally left blank */ }
+	{ _config = new Config(Config::PredType::POSITIVE, Config::PredFormat::SHORT); }
 
 	/// Copy Constructor
 	inline TransitionFormatter(TransitionFormatter const& other)
-	{	mConfig = other.mConfig; }
+	{	_config = new Config(*other._config); }
 
 	/// Destructor
 	inline ~TransitionFormatter()
@@ -92,10 +99,10 @@ public:
 	/* Public Methods */
 	/*****************************************************************************************/
 	/// Gets the configuration instance for manipulation.
-	inline Config& config() { return mConfig; }
+	inline Config* config() { return _config; }
 
 	/// Gets the configuration instance for viewing
-	inline Config const& config() const { return mConfig; }
+	inline Config const* config() const { return _config; }
 
 	/// Display list of support command line arguments in the form of a help dialog.
 	/// @param shorthand Whether to print short hand flags as well (these may conflict with your program).
@@ -112,7 +119,7 @@ public:
 	/// @param opt The option to set.
 	/// @param val The value for the option (if required).
 	/// @return True if the value was valid and the option has been set.
-	bool setOption(Option opt, char const* val = NULL);
+	bool setOption(Option::type opt, char const* val = NULL);
 	
 	/// Translates the answer set provided by the input stream and writes the corresponding
 	/// transitional output to the output stream.
@@ -121,9 +128,8 @@ public:
  	/// @param ignorenl True to indicate the answer set may span multiple lines (assumes that the answer set occupies the entire input stream).
 	/// @param solver The type of solver that produced the answer set. Setting to unknown causes as2transition to operate in compatibility mode and uses best guesses.
 	inline std::ostream& format(std::istream& in, std::ostream& out, bool ignorenl = false) const {
-		TransitionPath* path = format(in, ignorenl);
+		babb::utils::ref_ptr<TransitionPath> path = format(in, ignorenl);
 		path->output(out);
-		delete path;
 		return out;
 	}
 

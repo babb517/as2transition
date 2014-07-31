@@ -8,14 +8,16 @@ if [ "$1" == "noconf" ]
 then
 
 	mkdir -p build-scripts && \
-		aclocal && \
+		libtoolize &&\
+		aclocal -I build-scripts --install && \
 		autoheader && \
 		automake --add-missing && \
 		autoconf
 else
 
 	mkdir -p build-scripts && \
-		aclocal && \
+		libtoolize &&\
+		aclocal -I build-scripts --install && \
 		autoheader && \
 		automake --add-missing && \
 		autoconf && \

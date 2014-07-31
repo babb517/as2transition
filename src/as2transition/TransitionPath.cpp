@@ -23,15 +23,15 @@
 #include <vector>
 #include <iostream>
 
-#include "TransitionPath.h"
-#include "Timestep.h"
-#include "Config.h"
+#include "as2transition/TransitionPath.h"
+#include "as2transition/Timestep.h"
+#include "as2transition/Config.h"
 
 namespace as2transition {
 
 // Adds the predicate to the transition path.
 bool TransitionPath::add(Predicate* pred) {
-	size_t time = pred->time();
+	size_t time = pred->timestep();
 	Timestep* ts = step(time);
 	if (ts) {
 		ts->add(pred);
@@ -39,17 +39,17 @@ bool TransitionPath::add(Predicate* pred) {
 	} else {
 		size_t max = length();
 		while (max <= time) {
-			mSteps.push_back(new Timestep(mConfig,max++));
+			_steps.push_back(new Timestep(_config,max++));
 		}
-		mSteps[time]->add(pred);
+		_steps[time]->add(pred);
 		return true;
 	}
 }
 
 // Prints the path to the stream
 std::ostream& TransitionPath::output(std::ostream& out) const {
-	if (mTimeless.num()) {
-		out << mTimeless;
+	if (_timeless->num()) {
+		out << _timeless;
 		out << std::endl;
 	}
 

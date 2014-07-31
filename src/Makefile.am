@@ -1,42 +1,29 @@
-include Makefile.shared
-
-as2transincludedir = $(includedir)/as2transition
+include $(top_srcdir)/src/Makefile.shared
 
 
-lib_LIBRARIES = libas2transition.a
-bin_PROGRAMS = as2transition
+lib_LIBRARIES = ../libas2transition.a
+bin_PROGRAMS = ../as2transition
 
-as2transinclude_HEADERS = \
-	TransitionFormatter.h \
-	TransitionPath.h \
-	Predicate.h \
-	StringUtils.h \
-	Config.h \
-	Timestep.h
 
 BUILT_SOURCES = \
-	TransitionFormatter.cpp
+	as2transition/TransitionFormatter.cpp \
+	as2transition/parser/Scanner.cpp \
+	as2transition/parser/lemon_parser.cpp
 
-libas2transition_a_SOURCES = \
-	TransitionFormatter.cpp \
-	TransitionPath.cpp \
-	Timestep.cpp \
-	Predicate.cpp \
-	StringUtils.cpp 
+___libas2transition_a_SOURCES = \
+	as2transition/TransitionFormatter.cpp \
+	as2transition/Config.cpp \
+	as2transition/PredElement.cpp \
+	as2transition/Predicate.cpp \
+	as2transition/Timestep.cpp \
+	as2transition/TransitionPath.cpp \
+	as2transition/parser/Scanner.cpp \
+	as2transition/parser/lemon_parser.cpp \
+	as2transition/parser/PredicateParser.cpp 
 
 
-as2transition_SOURCES = \
+___as2transition_SOURCES = \
 	main.cpp 
-#	TransitionFormatter.cpp \
-#	TransitionPath.cpp \
-#	Timestep.cpp \
-#	Predicate.cpp \
-#	StringUtils.cpp 
 
-as2transition_LDADD = libas2transition.a
-
-install-exec-hook:
-	chmod 755 $(as2transincludedir)
-	chmod 744 $(as2transincludedir)/*
-	chown root -R $(as2transincludedir)
+___as2transition_LDADD = ../libas2transition.a
 
