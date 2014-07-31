@@ -51,6 +51,9 @@ private:
 	/// Our current parse status
 	Status::type _stat;
 
+	/// Last token read in
+	std::string _last_token;
+
 public:
 	/***********************************************************************************/
 	/* Constructors */

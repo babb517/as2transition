@@ -48,7 +48,7 @@ re2c_start:
 		WS								 		= [ \t\v\f\n];
 		EOF										= [\X0000];
 
-		INTEGER									= NUM+;
+		INTEGER									= "-"? NUM+;
 		IDENTIFIER								= ALPH AN*;
 
 
@@ -145,9 +145,10 @@ void Scanner::fill(size_t n) {
 		if (!_newline) {
 			char c = _source.get();
 			while (_source.good() && c && c != '\n' && read_amount) {
-				*readpos++ = c; 
-				read_amount--;
-				c = _source.get();
+				*readpos++ = c;
+				if (--read_amount) {
+					c = _source.get();
+				}
 			}
 			if (c == '\n') _newline = true;
 		}

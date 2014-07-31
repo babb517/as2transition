@@ -46,6 +46,9 @@ PredicateParser::Status::type PredicateParser::parse() {
 	// parse the list...
 	do {
 		tcode = _scanner->readToken(token);
+		_last_token = *token;
+//		std::cout << "Got token \"" << *token << "\" of type \"" << lemon_parserTokenName(tcode) << "\"." << std::endl;
+		
 
 		switch (tcode) {
 
@@ -58,6 +61,8 @@ PredicateParser::Status::type PredicateParser::parse() {
 			lemon_parserAttemptReduce(_parser, this);
 			_stat = Status::FINISHED;
 			break;
+		case T_ERR_UNKNOWN_SYMBOL:
+			_parse_error("Encountered an unexpected symbol \"" + *token + "\".");
 
 		default:
 			lemon_parser(_parser, tcode, token, this);
@@ -71,7 +76,9 @@ PredicateParser::Status::type PredicateParser::parse() {
 
 
 void PredicateParser::_parse_error(std::string const& error) {
-	std::cerr << "ERROR: " << error << std::endl;
+	std::cerr << "ERROR: \"" << error << "\"";
+	if (_last_token.size()) std::cerr << " while parsing token \"" << _last_token << "\".";
+	std::cerr << std::endl;
 	_stat = Status::SYNTAX_ERR;
 }
 
