@@ -69,7 +69,7 @@ void Timestep::add(Predicate* newPredicate)
 // Simple method used to insert items into a sorted list.
 void Timestep::insert(PredList& list, Predicate* pred) {
 	iterator it;
-	for (it = list.begin(); it != list.end() && *(*it)->base() <= *pred->base(); it++);
+	for (it = list.begin(); it != list.end() && **it < *pred; it++);
 	list.insert(it, pred);
 }
 

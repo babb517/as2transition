@@ -188,6 +188,7 @@ Predicate::~Predicate() {
 }
 
 
+
 PredElement* Predicate::format(Config const* config) const {
 	/// Cull things we shouldn't show...
 

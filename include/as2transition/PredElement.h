@@ -88,6 +88,13 @@ public:
 	inline PredElement* operator[](int i)							{ return (*_args)[i]; }
 	inline PredElement const* operator[](int i)	const				{ return (*_args)[i]; }
 
+	/// comparison operators
+	bool operator<(PredElement const& other) const;
+	bool operator>(PredElement const& other) const;
+	bool operator==(PredElement const& other) const;
+	bool operator!=(PredElement const& other) const;
+
+
 
 	/// Reformat the element according the provided format rules
 	/// @param config How the element should be formatted.

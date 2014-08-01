@@ -84,6 +84,53 @@ PredElement* PredElement::format(Config const* config) const {
 
 }
 
+
+
+bool PredElement::operator<(PredElement const& other) const {
+	if (*base() != *other.base()) return *base() < *other.base();
+	if (arity() != other.arity()) return arity() < other.arity();
+
+	for (size_t i = 0; i < arity(); i++) {
+		if (*get(i) != *other.get(i)) return *get(i) < *other.get(i);
+	}
+	return false;
+}
+
+bool PredElement::operator>(PredElement const& other) const {
+	if (*base() != *other.base()) return *base() > *other.base();
+	if (arity() != other.arity()) return arity() > other.arity();
+
+	for (size_t i = 0; i < arity(); i++) {
+		if (*get(i) != *other.get(i)) return *get(i) > *other.get(i);
+	}
+	return false;
+}
+
+
+
+bool PredElement::operator==(PredElement const& other) const {
+	if (*base() != *other.base()) return false;
+	if (arity() != other.arity()) return false;
+
+	for (size_t i = 0; i < arity(); i++) {
+		if (*get(i) != *other.get(i)) return false;
+	}
+	return true;
+}
+
+
+bool PredElement::operator!=(PredElement const& other) const {
+	if (*base() != *other.base()) return true;
+	if (arity() != other.arity()) return true;
+
+	for (size_t i = 0; i < arity(); i++) {
+		if (*get(i) != *other.get(i)) return true;
+	}
+	return false;
+}
+
+
+
 std::ostream& operator<<(std::ostream& out, PredElement const& elem) {
 
 	if (*elem.base() == "=" && elem.arity() == 2) {
