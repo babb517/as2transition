@@ -23,6 +23,13 @@ PredElement::PredElement(Type::type type, ReferencedString const* base, ElementL
 
 }
 
+PredElement::PredElement(Type::type type, ReferencedString const* base, PredElement* arg)
+	: _base(base), _type(type) {
+	_args = new ElementList();
+	_args->push_back(arg);
+
+}
+
 PredElement::~PredElement() { }
 
 PredElement* PredElement::format(Config const* config) const {
@@ -139,6 +146,9 @@ std::ostream& operator<<(std::ostream& out, PredElement const& elem) {
 		out << *elem.base();
 		out << *elem.get(1);
 	} else if (*elem.base() == "~" && elem.arity() == 1) {
+		// special case... if the elemen is ~(c) then omit the parens...
+		out << *elem.base() << *elem.get(0);
+	} else if (*elem.base() == "-" && elem.arity() == 1) {
 		// special case... if the elemen is ~(c) then omit the parens...
 		out << *elem.base() << *elem.get(0);
 	} else {

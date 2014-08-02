@@ -168,7 +168,7 @@ Predicate::Predicate(ReferencedString const* b, ElementList* args, bool negated)
 
 
 	if (_value) {
-		if (_value->arity() == 1 
+		if (_value->arity() == 0
 			&& (*_value->base() == "none" || *_value->base() == "o_none"
 				|| *_value->base() == "false" || *_value->base() == "o_false"))
 			_predmask |= Config::PredType::NEGATIVE;
@@ -199,33 +199,49 @@ PredElement* Predicate::format(Config const* config) const {
 
 
 	u::ref_ptr<ElementList> args = new ElementList();
+	u::ref_ptr<PredElement> ret;
 
 
 	switch (config->format()) {
 	case Config::PredFormat::RAW:
 		// just return this...
-		return PredElement::format(config);
+		ret = PredElement::format(config);
+		if ((predmask() & Config::PredType::STRONG_NEGATION)) 
+			ret = new PredElement(PredElement::Type::OBJECT, new ReferencedString("~"), ret);
+		return ret.release();
 
 	case Config::PredFormat::INNER:
 		args->push_back(_inner->format(config));
 		args->push_back(_value->format(config));
-		return new PredElement(PredElement::Type::OBJECT, new ReferencedString((_eq ? "eq" : "eql")), args);
+		ret = new PredElement(PredElement::Type::OBJECT, new ReferencedString((_eq ? "eq" : "eql")), args);
+		if ((predmask() & Config::PredType::STRONG_NEGATION)) 
+			ret = new PredElement(PredElement::Type::OBJECT, new ReferencedString("~"), ret);
+		return ret.release();
 
 	case Config::PredFormat::SHORT:
 		if (_value->arity() == 0 && (*_value->base() == "true" || *_value->base() == "o_true"))	return _inner->format(config);
 		if (_value->arity() == 0 && (*_value->base() == "false" || *_value->base() == "o_false")) {
 			args->push_back(_inner->format(config));
-			return new PredElement(PredElement::Type::OBJECT, new ReferencedString("~"), args);
+			return new PredElement(PredElement::Type::OBJECT, new ReferencedString("-"),
+				((predmask() & Config::PredType::STRONG_NEGATION) ? 
+					  new PredElement(PredElement::Type::OBJECT, new ReferencedString("~"), _inner->format(config))
+					: _inner->format(config)));
 		}
 
 		/* no break */
 	case Config::PredFormat::EQL:
 		args->push_back(_inner->format(config));
 		args->push_back(_value->format(config));
-		return new PredElement(PredElement::Type::OBJECT, new ReferencedString("="), args);
+		ret = new PredElement(PredElement::Type::OBJECT, new ReferencedString("="), args);
+		if ((predmask() & Config::PredType::STRONG_NEGATION)) 
+			ret = new PredElement(PredElement::Type::OBJECT, new ReferencedString("~"), ret);
+		return ret.release();
 	default:
 		// just return this...
-		return PredElement::format(config);
+		ret = PredElement::format(config);
+		if ((predmask() & Config::PredType::STRONG_NEGATION)) 
+			ret = new PredElement(PredElement::Type::OBJECT, new ReferencedString("~"), ret);
+		return ret.release();
 	}
 
 

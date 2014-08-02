@@ -57,8 +57,14 @@ public:
 	/// Basic constructor
 	/// @param type The type of element that this is
 	/// @param base The base name of this element
-	/// @param args The arguments for this element or NULL if the element is singleton
+	/// @param args The arguments for this element or NULL if the element is nullary
 	PredElement(Type::type type, ReferencedString const* base, ElementList* args = NULL);
+	
+	/// Basic constructor for unary predelement
+	/// @param type The type of element that this is
+	/// @param base The base name of this element
+	/// @param arg The argument for this element
+	PredElement(Type::type type, ReferencedString const* base, PredElement* arg);
 
 
 	/// Basic Destructor
