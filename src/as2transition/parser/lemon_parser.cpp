@@ -60,18 +60,18 @@
 **                       and nonterminal numbers.  "unsigned char" is
 **                       used if there are fewer than 250 rules and
 **                       states combined.  "int" is used otherwise.
-**    lemon_parserTOKENTYPE     is the data type used for minor tokens given 
+**    transition_parserTOKENTYPE     is the data type used for minor tokens given 
 **                       directly to the parser from the tokenizer.
 **    YYMINORTYPE        is the data type used for all minor tokens.
 **                       This is typically a union of many types, one of
-**                       which is lemon_parserTOKENTYPE.  The entry in the union
+**                       which is transition_parserTOKENTYPE.  The entry in the union
 **                       for base tokens is called "yy0".
 **    YYSTACKDEPTH       is the maximum depth of the parser's stack.  If
 **                       zero the stack is dynamically sized using realloc()
-**    lemon_parserARG_SDECL     A static variable declaration for the %extra_argument
-**    lemon_parserARG_PDECL     A parameter declaration for the %extra_argument
-**    lemon_parserARG_STORE     Code to store %extra_argument into yypParser
-**    lemon_parserARG_FETCH     Code to extract %extra_argument from yypParser
+**    transition_parserARG_SDECL     A static variable declaration for the %extra_argument
+**    transition_parserARG_PDECL     A parameter declaration for the %extra_argument
+**    transition_parserARG_STORE     Code to store %extra_argument into yypParser
+**    transition_parserARG_FETCH     Code to extract %extra_argument from yypParser
 **    YYNSTATE           the combined number of states.
 **    YYNRULE            the number of rules in the grammar
 **    YYERRORSYMBOL      is the code number of the error symbol.  If not
@@ -80,10 +80,10 @@
 #define YYCODETYPE unsigned char
 #define YYNOCODE 18
 #define YYACTIONTYPE unsigned char
-#define lemon_parserTOKENTYPE  ReferencedString const*					
+#define transition_parserTOKENTYPE  ReferencedString const*					
 typedef union {
   int yyinit;
-  lemon_parserTOKENTYPE yy0;
+  transition_parserTOKENTYPE yy0;
   PredElement* yy2;
   UNUSED yy11;
   PredElement::ElementList* yy18;
@@ -93,10 +93,10 @@ typedef union {
 #ifndef YYSTACKDEPTH
 #define YYSTACKDEPTH 100
 #endif
-#define lemon_parserARG_SDECL  PredicateParser* parser					;
-#define lemon_parserARG_PDECL , PredicateParser* parser					
-#define lemon_parserARG_FETCH  PredicateParser* parser					 = yypParser->parser					
-#define lemon_parserARG_STORE yypParser->parser					 = parser					
+#define transition_parserARG_SDECL  PredicateParser* parser					;
+#define transition_parserARG_PDECL , PredicateParser* parser					
+#define transition_parserARG_FETCH  PredicateParser* parser					 = yypParser->parser					
+#define transition_parserARG_STORE yypParser->parser					 = parser					
 #define YYNSTATE 25
 #define YYNRULE 15
 #define YYERRORSYMBOL 11
@@ -247,7 +247,7 @@ struct yyParser {
   int yyidxMax;                 /* Maximum value of yyidx */
 #endif
   int yyerrcnt;                 /* Shifts left before out of the error */
-  lemon_parserARG_SDECL                /* A place to hold %extra_argument */
+  transition_parserARG_SDECL                /* A place to hold %extra_argument */
 #if YYSTACKDEPTH<=0
   int yystksz;                  /* Current side of the stack */
   yyStackEntry *yystack;        /* The parser's stack */
@@ -286,7 +286,7 @@ static char const*yyTracePrompt = 0;
 ** Outputs:
 ** None.
 */
-void lemon_parserTrace(FILE *TraceFILE, char const*zTracePrompt){
+void transition_parserTrace(FILE *TraceFILE, char const*zTracePrompt){
   yyTraceFILE = TraceFILE;
   yyTracePrompt = zTracePrompt;
   if( yyTraceFILE==0 ) yyTracePrompt = 0;
@@ -362,9 +362,9 @@ static void yyGrowStack(yyParser *p){
 **
 ** Outputs:
 ** A pointer to a parser.  This pointer is used in subsequent calls
-** to lemon_parser and lemon_parserFree.
+** to transition_parser and transition_parserFree.
 */
-void *lemon_parserAlloc(void *(*mallocProc)(size_t)){
+void *transition_parserAlloc(void *(*mallocProc)(size_t)){
   yyParser *pParser;
   pParser = (yyParser*)(*mallocProc)( (size_t)sizeof(yyParser) );
   if( pParser ){
@@ -394,7 +394,7 @@ static void yy_destructor(
   YYCODETYPE yymajor,     /* Type code for object to destroy */
   YYMINORTYPE *yypminor   /* The object to be destroyed */
 ){
-  lemon_parserARG_FETCH;
+  transition_parserARG_FETCH;
   switch( yymajor ){
     /* Here is inserted the actions which take place when a
     ** terminal or non-terminal is destroyed.  This can happen
@@ -454,7 +454,7 @@ static void yy_destructor(
       break;
     default:  break;   /* If no destructor action specified: do nothing */
   }
-  lemon_parserARG_STORE;
+  transition_parserARG_STORE;
 }
 
 /*
@@ -490,12 +490,12 @@ static int yy_pop_parser_stack(yyParser *pParser){
 ** Inputs:
 ** <ul>
 ** <li>  A pointer to the parser.  This should be a pointer
-**       obtained from lemon_parserAlloc.
+**       obtained from transition_parserAlloc.
 ** <li>  A pointer to a function used to reclaim memory obtained
 **       from malloc.
 ** </ul>
 */
-void lemon_parserFree(
+void transition_parserFree(
   void *p,                    /* The parser to be deleted */
   void (*freeProc)(void*)     /* Function used to reclaim memory */
 ){
@@ -513,7 +513,7 @@ void lemon_parserFree(
 ** Return the peak depth of the stack for a parser.
 */
 #ifdef YYTRACKMAXSTACKDEPTH
-int lemon_parserStackPeak(void *p){
+int transition_parserStackPeak(void *p){
   yyParser *pParser = (yyParser*)p;
   return pParser->yyidxMax;
 }
@@ -624,7 +624,7 @@ static int yy_find_reduce_action(
 ** The following routine is called if the stack overflows.
 */
 static void yyStackOverflow(yyParser *yypParser /*, YYMINORTYPE *yypMinor */){
-   lemon_parserARG_FETCH;
+   transition_parserARG_FETCH;
    yypParser->yyidx--;
 #ifndef NDEBUG
    if( yyTraceFILE ){
@@ -634,7 +634,7 @@ static void yyStackOverflow(yyParser *yypParser /*, YYMINORTYPE *yypMinor */){
    while( yypParser->yyidx>=0 ) yy_pop_parser_stack(yypParser);
    /* Here code is inserted which will execute if the parser
    ** stack every overflows */
-   lemon_parserARG_STORE; /* Suppress warning about unused %extra_argument var */
+   transition_parserARG_STORE; /* Suppress warning about unused %extra_argument var */
 }
 
 /*
@@ -728,7 +728,7 @@ static void yy_reduce(
   YYMINORTYPE yygotominor;        /* The LHS of the rule reduced */
   yyStackEntry *yymsp;            /* The top of the parser's stack */
   int yysize;                     /* Amount to pop the stack */
-  lemon_parserARG_FETCH;
+  transition_parserARG_FETCH;
   yymsp = &yypParser->yystack[yypParser->yyidx];
 #ifndef NDEBUG
   if( yyTraceFILE && yyruleno>=0 
@@ -880,7 +880,7 @@ static void yy_reduce(
 static void yy_parse_failed(
   yyParser *yypParser           /* The parser */
 ){
-  lemon_parserARG_FETCH;
+  transition_parserARG_FETCH;
 #ifndef NDEBUG
   if( yyTraceFILE ){
     fprintf(yyTraceFILE,"%sFail!\n",yyTracePrompt);
@@ -889,7 +889,7 @@ static void yy_parse_failed(
   while( yypParser->yyidx>=0 ) yy_pop_parser_stack(yypParser);
   /* Here code is inserted which will be executed whenever the
   ** parser fails */
-  lemon_parserARG_STORE; /* Suppress warning about unused %extra_argument variable */
+  transition_parserARG_STORE; /* Suppress warning about unused %extra_argument variable */
 }
 #endif /* YYNOERRORRECOVERY */
 
@@ -901,12 +901,12 @@ static void yy_syntax_error(
   int yymajor,                   /* The major type of the error token */
   YYMINORTYPE yyminor            /* The minor type of the error token */
 ){
-  lemon_parserARG_FETCH;
+  transition_parserARG_FETCH;
 #define TOKEN (yyminor.yy0)
 #line 48 "as2transition/parser/lemon_parser.y"
  parser->_parse_error("Syntax error.");	
 #line 909 "as2transition/parser/lemon_parser.c"
-  lemon_parserARG_STORE; /* Suppress warning about unused %extra_argument variable */
+  transition_parserARG_STORE; /* Suppress warning about unused %extra_argument variable */
 }
 
 /*
@@ -915,7 +915,7 @@ static void yy_syntax_error(
 static void yy_accept(
   yyParser *yypParser           /* The parser */
 ){
-  lemon_parserARG_FETCH;
+  transition_parserARG_FETCH;
 #ifndef NDEBUG
   if( yyTraceFILE ){
     fprintf(yyTraceFILE,"%sAccept!\n",yyTracePrompt);
@@ -924,7 +924,7 @@ static void yy_accept(
   while( yypParser->yyidx>=0 ) yy_pop_parser_stack(yypParser);
   /* Here code is inserted which will be executed whenever the
   ** parser accepts */
-  lemon_parserARG_STORE; /* Suppress warning about unused %extra_argument variable */
+  transition_parserARG_STORE; /* Suppress warning about unused %extra_argument variable */
 }
 
 
@@ -1048,7 +1048,7 @@ static void yy_handle_err(yyParser* yypParser, int* yyerrorhit) {
 ** cleared from the parser or YYNOCODE and sets the lookahead minor
 ** type appropriately.
 */
-int lemon_parserPreInject(void* yyp, int pop, lemon_parserTOKENTYPE* lookahead) {
+int transition_parserPreInject(void* yyp, int pop, transition_parserTOKENTYPE* lookahead) {
 	yyParser* pParser = (yyParser*)yyp;
 	int code = pParser->yylookmajor;
 	if (pop && pParser->yyidx) yy_pop_parser_stack(pParser);
@@ -1069,7 +1069,7 @@ int lemon_parserPreInject(void* yyp, int pop, lemon_parserTOKENTYPE* lookahead) 
 ** Primarily for debugging purposes.
 **
 */
-char const* lemon_parserTokenName(int tok) {
+char const* transition_parserTokenName(int tok) {
 	if (tok < 1) return "<INVALID_TOKEN>";
 	else if (tok == YYNOCODE) return "<NOCODE_TOKEN>";
 #ifdef YYERRORSYMBOL
@@ -1083,9 +1083,9 @@ char const* lemon_parserTokenName(int tok) {
 ** Checks to see if there is a next-token independent reduction rule
 ** and executes it.
 */
-void lemon_parserAttemptReduce(void* yyp lemon_parserARG_PDECL) {
+void transition_parserAttemptReduce(void* yyp transition_parserARG_PDECL) {
 	yyParser* yypParser = (yyParser*)yyp;
-	lemon_parserARG_STORE;
+	transition_parserARG_STORE;
 	int act = 0;
 	int yyerrorhit = 0;
 	do {
@@ -1105,7 +1105,7 @@ void lemon_parserAttemptReduce(void* yyp lemon_parserARG_PDECL) {
 
 /* The main parser program.
 ** The first argument is a pointer to a structure obtained from
-** "lemon_parserAlloc" which describes the current state of the parser.
+** "transition_parserAlloc" which describes the current state of the parser.
 ** The second argument is the major token number.  The third is
 ** the minor token.  The fourth optional argument is whatever the
 ** user wants (and specified in the grammar) and is available for
@@ -1122,11 +1122,11 @@ void lemon_parserAttemptReduce(void* yyp lemon_parserARG_PDECL) {
 ** Outputs:
 ** None.
 */
-void lemon_parser(
+void transition_parser(
   void *yyp,                   /* The parser */
   int yymajor,                 /* The major token code number */
-  lemon_parserTOKENTYPE yyminor       /* The value for the token */
-  lemon_parserARG_PDECL               /* Optional %extra_argument parameter */
+  transition_parserTOKENTYPE yyminor       /* The value for the token */
+  transition_parserARG_PDECL               /* Optional %extra_argument parameter */
 ){
   int yyact;            /* The parser action. */
   int yyendofinput;     /* True if we are at the end of input */
@@ -1153,7 +1153,7 @@ void lemon_parser(
   yypParser->yylookmajor = yymajor;
   yypParser->yylookminor.yy0 = yyminor;
   yyendofinput = (yypParser->yylookmajor==0);
-  lemon_parserARG_STORE;
+  transition_parserARG_STORE;
 
 #ifndef NDEBUG
   if( yyTraceFILE ){

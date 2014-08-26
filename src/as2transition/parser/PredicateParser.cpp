@@ -10,14 +10,14 @@
 namespace u = babb::utils;
 
 // parser functions
-void*       lemon_parserAlloc(void* (*mallocProc)(size_t));
-void*       lemon_parserFree(void* yyp, void (*freeProc)(void*));
-void        lemon_parser(void* yyp, int tokentype, ReferencedString const* token, as2transition::parser::PredicateParser* parser);
-int         lemon_parserPreInject(void* yyp, int pop, ReferencedString const** token);
-void		lemon_parserAttemptReduce(void* yyp, as2transition::parser::PredicateParser* parser);
+void*       transition_parserAlloc(void* (*mallocProc)(size_t));
+void*       transition_parserFree(void* yyp, void (*freeProc)(void*));
+void        transition_parser(void* yyp, int tokentype, ReferencedString const* token, as2transition::parser::PredicateParser* parser);
+int         transition_parserPreInject(void* yyp, int pop, ReferencedString const** token);
+void		transition_parserAttemptReduce(void* yyp, as2transition::parser::PredicateParser* parser);
 #ifndef NDEBUG
-void 		lemon_parserTrace(FILE *TraceFILE, char const*zTracePrompt);
-char const*	lemon_parserTokenName(int tcode);
+void 		transition_parserTrace(FILE *TraceFILE, char const*zTracePrompt);
+char const*	transition_parserTokenName(int tcode);
 #endif
 
 namespace as2transition {
@@ -28,11 +28,11 @@ namespace parser {
 PredicateParser::PredicateParser(std::istream& input, bool stopnewline)
 	: _stat(Status::READY) {
 	_scanner = new Scanner(input, stopnewline);
-	_parser = lemon_parserAlloc(malloc);
+	_parser = transition_parserAlloc(malloc);
 }
 
 PredicateParser::~PredicateParser() {
-	lemon_parserFree(_parser, free);
+	transition_parserFree(_parser, free);
 }
 
 
@@ -47,7 +47,7 @@ PredicateParser::Status::type PredicateParser::parse() {
 	do {
 		tcode = _scanner->readToken(token);
 		_last_token = *token;
-//		std::cout << "Got token \"" << *token << "\" of type \"" << lemon_parserTokenName(tcode) << "\"." << std::endl;
+//		std::cout << "Got token \"" << *token << "\" of type \"" << transition_parserTokenName(tcode) << "\"." << std::endl;
 		
 
 		switch (tcode) {
@@ -57,15 +57,15 @@ PredicateParser::Status::type PredicateParser::parse() {
 			break;
 		
 		case T_EOF:
-			lemon_parser(_parser, tcode, token, this);
-			lemon_parserAttemptReduce(_parser, this);
+			transition_parser(_parser, tcode, token, this);
+			transition_parserAttemptReduce(_parser, this);
 			_stat = Status::FINISHED;
 			break;
 		case T_ERR_UNKNOWN_SYMBOL:
 			_parse_error("Encountered an unexpected symbol \"" + *token + "\".");
 
 		default:
-			lemon_parser(_parser, tcode, token, this);
+			transition_parser(_parser, tcode, token, this);
 			break;
 		} 
 	} while (_stat == Status::READY);

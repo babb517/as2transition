@@ -21,7 +21,7 @@
 
 		}
 
-%name 								lemon_parser
+%name 								transition_parser
 %token_prefix 						T_
 %extra_argument 					{ PredicateParser* parser					}
 
