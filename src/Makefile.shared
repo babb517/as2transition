@@ -1,5 +1,9 @@
 INCLUDE = $(PROJECT_ROOT)/include
 
+AUTOMAKE_OPTIONS = subdir-objects
+
+LEMON = $(PROJECT_ROOT)/lemon/lemon
+
 AM_CFLAGS = -I$(INCLUDE) -DNO_BOOST
 AM_CXXFLAGS = --std=c++0x -I$(INCLUDE) -DNO_BOOST
 AM_CPPFLAGS = --std=c++0x -I$(INCLUDE) -DNO_BOOST
@@ -46,7 +50,6 @@ endif
 
 # lemon rules
 if MAINTAINER_MODE
-if HAVE_LEMON
 .y.h:
 	$(LEMON) $< T=lemon/lempar.tem.c
 	mv $@ $(INCLUDE)/$@
@@ -72,41 +75,6 @@ if HAVE_LEMON
 	$(LEMON) $< T=lemon/lempar.tem.c
 	mv $(@:.cpp=.h) $(INCLUDE)/$(@:.cpp=.h)
 	mv $(@:.cpp=.c) $@
-else
-
-.y.h:
-	@- echo "ERROR: Configured to build in maintainer mode but lemon is not installed on the computer."
-	@- echo "ERROR: Modified lemon files cannot be compiled into the corresponding .cpp file."
-	@- echo "ERROR: Please install lemon or add the '--disable-maintainer-mode' option during configuration."
-	@- exit 1
-.yy.h:
-	@- echo "ERROR: Configured to build in maintainer mode but lemon is not installed on the computer."
-	@- echo "ERROR: Modified lemon files cannot be compiled into the corresponding .cpp file."
-	@- echo "ERROR: Please install lemon or add the '--disable-maintainer-mode' option during configuration."
-	@- exit 1
-.ypp.h:
-	@- echo "ERROR: Configured to build in maintainer mode but lemon is not installed on the computer."
-	@- echo "ERROR: Modified lemon files cannot be compiled into the corresponding .cpp file."
-	@- echo "ERROR: Please install lemon or add the '--disable-maintainer-mode' option during configuration."
-	@- exit 1
-
-.y.c:
-	@- echo "ERROR: Configured to build in maintainer mode but lemon is not installed on the computer."
-	@- echo "ERROR: Modified lemon files cannot be compiled into the corresponding .cpp file."
-	@- echo "ERROR: Please install lemon or add the '--disable-maintainer-mode' option during configuration."
-	@- exit 1
-.yy.c:
-	@- echo "ERROR: Configured to build in maintainer mode but lemon is not installed on the computer."
-	@- echo "ERROR: Modified lemon files cannot be compiled into the corresponding .cpp file."
-	@- echo "ERROR: Please install lemon or add the '--disable-maintainer-mode' option during configuration."
-	@- exit 1
-.ypp.cpp:
-	@- echo "ERROR: Configured to build in maintainer mode but lemon is not installed on the computer."
-	@- echo "ERROR: Modified lemon files cannot be compiled into the corresponding .cpp file."
-	@- echo "ERROR: Please install lemon or add the '--disable-maintainer-mode' option during configuration."
-	@- exit 1
-
-endif
 else
 
 .y.h:

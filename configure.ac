@@ -11,7 +11,7 @@ AC_CONFIG_AUX_DIR([build-scripts])
 # Setup Automake
 AM_INIT_AUTOMAKE
 AC_SUBST([PROJECT_ROOT],`pwd`)
-AC_CONFIG_FILES([Makefile src/Makefile])
+AC_CONFIG_FILES([Makefile src/Makefile lemon/Makefile])
 
 
 # Allows LEX, YACC, and RE2C to rebuild their files.
@@ -24,9 +24,6 @@ AC_PROG_CC
 AC_PATH_PROG([RE2C],[re2c],[false])
 AC_SUBST(RE2C)
 AM_CONDITIONAL([HAVE_RE2C],[test "x$RE2C" != x"false"])
-AC_PATH_PROG([LEMON],[lemon],[false])
-AC_SUBST(LEMON)
-AM_CONDITIONAL([HAVE_LEMON],[test "x$LEMON" != x"false"])
 
 LT_INIT
 

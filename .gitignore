@@ -33,6 +33,7 @@ libtool
 *.la
 *.so*
 *.a
+/lemon/lemon
 
 # Other stuff
 /precompiled
